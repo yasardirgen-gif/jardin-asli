@@ -1,0 +1,1542 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jardin d'Aslı">
+<meta name="theme-color" content="#151833">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>html,body{margin:0}</style>
+<script src="shim.js"></script>
+<title>Le Jardin d'Aslı</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<style>
+/* Concept : un petit jeu 8-bit. Une tulipe pousse à chaque leçon, le jardin se remplit avec les cadeaux. */
+:root{
+  --bg:#151833; --bg2:#1d2146; --panel:#2a2f66; --panel2:#3a4190; --ink:#0c0e20;
+  --text:#f6f2ff; --dim:#b9bdf0;
+  --red:#ff4d5e; --gold:#ffd24a; --green:#4fe08c; --blue:#5ab4ff; --pink:#ff8fca; --violet:#a088ff; --bad:#ff6b6b;
+  --f-px:'Press Start 2P','Courier New',monospace;
+  --f-body:'VT323','Courier New',monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:24px;line-height:1.12;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:20px 130px;
+  -webkit-tap-highlight-color:transparent;
+}
+#stars{position:fixed;left:0;top:0;width:4px;height:4px;pointer-events:none;animation:tw 2.4s steps(2) infinite;z-index:0}
+@keyframes tw{50%{opacity:.35}}
+#app,#navin{max-width:560px;margin:0 auto;position:relative;z-index:1}
+button{font-family:inherit}
+:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.fr{display:block}
+.tr{display:block;font-size:.72em;opacity:.8;line-height:1.1}
+.h1 .tr,.h2 .tr{font-family:var(--f-body);font-size:20px;line-height:1.1;margin-top:2px}
+.bella{display:flex;align-items:center;gap:12px;margin:10px 4px}
+.bella canvas{image-rendering:pixelated;width:96px;height:96px;flex:none}
+.bubble{background:var(--panel);padding:10px 12px;font-size:22px;flex:1;min-width:0}
+.xg{display:grid;gap:3px;justify-content:center;margin:12px auto}
+.xc{width:34px;height:34px;position:relative}
+.xc input{width:100%;height:100%;text-align:center;font-size:24px;text-transform:uppercase;background:#fff;color:var(--ink);border:0;padding:0;font-family:var(--f-body);border-radius:0}
+.xc input.ok{background:var(--green)}
+.xc input.no{background:#ff9aa0}
+.xc i{position:absolute;left:2px;top:0;font-size:9px;font-style:normal;color:var(--ink);font-family:var(--f-px);pointer-events:none;z-index:1}
+.xclue{display:flex;align-items:center;gap:8px;margin:6px 4px}
+.navrow{margin:0 4px}
+.navrow .btn{font-size:22px;padding:8px 10px 12px;margin:8px 4px;flex:1}
+.pimg{max-width:100%;max-height:260px;display:block;margin:8px auto}
+.pl{padding:10px;margin:8px 4px;background:var(--ink)}
+.pl.good{border-left:6px solid var(--green)}
+.pl.bad{border-left:6px solid var(--bad)}
+.flash .emo{font-size:44px}
+.ver{text-align:center;opacity:.6;font-size:16px;margin:10px 0}
+.emo{font-size:64px;line-height:1.1;margin:6px 0}
+.pron{margin:12px 4px;padding:12px;text-align:center;background:var(--ink)}
+.pron.good{background:#1f6b49}
+.pron.bad{background:#7a2a46}
+.pron .fbh{margin-bottom:4px}
+.px{position:relative;margin:4px;box-shadow:0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink)}
+.panel{background:var(--panel);padding:16px;margin-block:16px}
+.h1{font-family:var(--f-px);font-size:15px;line-height:1.7;margin:4px 0 6px}
+.h2{font-family:var(--f-px);font-size:11px;line-height:1.7;margin:22px 0 10px;color:var(--gold)}
+.sub{color:var(--dim);margin-bottom:8px}
+.big{font-size:46px;line-height:1.05;text-align:center;margin:10px 0;overflow-wrap:anywhere}
+.ic{display:inline-block;vertical-align:middle;image-rendering:pixelated;flex:none}
+small{font-size:.8em}
+
+/* boutons */
+.btn{display:block;width:calc(100% - 8px);margin:14px 4px;border:0;padding:12px 14px 16px;cursor:pointer;text-align:center;font-size:26px;color:var(--ink);background:var(--gold);
+  box-shadow:inset -4px -6px 0 0 rgba(0,0,0,.28),inset 4px 4px 0 0 rgba(255,255,255,.35),0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink)}
+.btn:active{transform:translateY(4px);box-shadow:inset -4px -2px 0 0 rgba(0,0,0,.28),inset 4px 4px 0 0 rgba(255,255,255,.35),0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink)}
+.btn.red{background:var(--red);color:#fff}
+.btn.green{background:var(--green)}
+.btn.blue{background:var(--blue)}
+.btn.ghost{background:var(--panel2);color:var(--text)}
+.btn[disabled]{opacity:.45;cursor:default}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row>*{flex:1 1 140px;min-width:0}
+.mini{border:0;background:var(--panel2);color:var(--text);width:52px;height:48px;cursor:pointer;display:grid;place-items:center;
+  box-shadow:inset -3px -3px 0 rgba(0,0,0,.3),0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink);margin:4px}
+
+/* jardin */
+.garden{height:210px;overflow:hidden;background:linear-gradient(#2a2a6e 0 25%,#4a3a8c 25% 50%,#8a4a96 50% 75%,#d9708f 75% 100%);margin-block:14px}
+.sun{position:absolute;right:28px;top:26px;width:28px;height:28px;background:var(--gold);box-shadow:0 -4px 0 var(--gold),0 4px 0 var(--gold),-4px 0 0 var(--gold),4px 0 0 var(--gold)}
+.cloud{position:absolute;width:8px;height:8px;background:#ffe9f4;opacity:.9;
+  box-shadow:8px 0 #ffe9f4,16px 0 #ffe9f4,-8px -8px #ffe9f4,0 -8px #ffe9f4,8px -8px #ffe9f4,16px -8px #ffe9f4;animation:drift 38s linear infinite}
+.cloud.c1{top:52px;left:-40px}
+.cloud.c2{top:100px;left:-120px;animation-duration:52s;scale:.75}
+@keyframes drift{to{translate:720px 0}}
+.grass{position:absolute;left:0;right:0;bottom:0;height:34px;background:linear-gradient(#3fbf6a 0 8px,#2e9a55 8px 22px,#7a4f33 22px 100%)}
+.beds{position:absolute;left:10px;right:10px;bottom:30px;display:flex;align-items:flex-end;justify-content:center;gap:6px;flex-wrap:nowrap;overflow:hidden}
+.beds canvas{width:54px;height:72px;image-rendering:pixelated;flex:none;animation:sway 1.6s steps(2) infinite}
+.beds canvas:nth-child(2n){animation-delay:.4s}
+.beds canvas:nth-child(3n){animation-delay:.8s}
+@keyframes sway{50%{transform:translateX(3px)}}
+.xp{display:flex;align-items:center;gap:12px;background:var(--panel);padding:10px 14px;margin-block:16px}
+.lv{font-family:var(--f-px);font-size:10px;color:var(--gold)}
+.xpn{font-size:20px;color:var(--dim)}
+.bar{flex:1;height:18px;background:var(--ink);padding:3px;min-width:0}
+.bar i{display:block;height:100%;background:var(--green);transition:width .5s steps(8)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 4px}
+.tile{background:var(--panel);padding:10px 6px 12px;text-align:center;margin:4px}
+.tile b{display:block;font-family:var(--f-px);font-size:15px;margin:6px 0 4px;font-weight:400}
+.tile span{font-size:20px;color:var(--dim)}
+.tile .fr{font-size:20px}
+.tile .tr{font-size:16px}
+
+/* cartes parcours */
+.unit{display:flex;gap:12px;align-items:center;width:calc(100% - 8px);background:var(--panel);border:0;color:var(--text);text-align:left;padding:12px;margin:12px 4px;cursor:pointer}
+.unit:active{transform:translateY(3px)}
+.unit.done{background:#27507a}
+.unit .num{font-family:var(--f-px);font-size:13px;background:var(--ink);padding:10px 9px;min-width:44px;text-align:center;color:var(--gold)}
+.unit .ut{flex:1;min-width:0}
+.unit .ut b{display:block;font-weight:400;font-size:28px}
+.unit .ut small{color:var(--dim);font-size:22px}
+.tabs{display:flex;gap:8px;margin:10px 4px 6px}
+.tab{flex:1;border:0;background:var(--panel);color:var(--dim);padding:10px 2px;font-family:var(--f-px);font-size:12px;cursor:pointer;margin:4px;
+  box-shadow:0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink)}
+.tab.on{background:var(--gold);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:8px 4px}
+.chip{border:0;background:var(--panel2);color:var(--text);padding:8px 12px 10px;font-size:26px;cursor:pointer;margin:4px;
+  box-shadow:0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink)}
+.chip.on{background:var(--gold);color:var(--ink)}
+.chip.wide{flex:1 1 100%;text-align:left}
+
+/* séance */
+.runbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.timer{font-family:var(--f-px);font-size:20px;color:var(--gold)}
+.prog{height:20px;background:var(--ink);padding:4px;margin-block:14px}
+.prog i{display:block;height:100%;width:0;background:var(--blue);transition:width .4s steps(8)}
+.part{font-family:var(--f-px);font-size:10px;color:var(--pink);margin:0 4px 6px}
+.over{color:var(--gold);text-align:center;margin:4px}
+.card{background:var(--panel);padding:16px;margin-block:12px;min-height:220px}
+.qh{color:var(--dim);margin-bottom:8px}
+.listen{display:flex;gap:10px;justify-content:center;margin:10px 0}
+.spk{border:0;background:var(--blue);color:var(--ink);padding:8px 14px;display:inline-flex;gap:8px;align-items:center;cursor:pointer;font-size:20px;margin:4px;
+  box-shadow:inset -3px -3px 0 rgba(0,0,0,.3),0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink)}
+.spk.slow{background:var(--violet)}
+.spk:active{transform:translateY(3px)}
+.spk .tr,.spk .fr{display:inline;font-size:1em;opacity:1}
+.spk .tr::before{content:' · '}
+.opts{display:grid;gap:14px;margin-top:14px}
+.opt{border:0;background:var(--panel2);color:var(--text);padding:12px 14px 14px;font-size:27px;text-align:left;cursor:pointer;margin:4px;
+  box-shadow:inset -4px -4px 0 rgba(0,0,0,.28),0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink);overflow-wrap:anywhere}
+.opt:active{transform:translateY(3px)}
+.opt.ok{background:var(--green);color:var(--ink)}
+.opt.no{background:var(--red);color:#fff;animation:shake .35s steps(4)}
+.opt[disabled]{cursor:default}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.text{background:var(--ink);padding:12px;margin:6px 0 12px;font-size:28px}
+.qq{margin:8px 0}
+.inp{width:calc(100% - 8px);margin:10px 4px;background:var(--ink);color:var(--text);border:0;padding:12px;font-size:30px;font-family:var(--f-body);
+  box-shadow:0 -4px 0 0 var(--blue),0 4px 0 0 var(--blue),-4px 0 0 0 var(--blue),4px 0 0 0 var(--blue)}
+.acc{display:flex;flex-wrap:wrap;gap:8px;margin:6px 4px 10px}
+.key{border:0;background:var(--panel2);color:var(--text);font-size:28px;min-width:44px;height:46px;cursor:pointer;margin:2px;
+  box-shadow:inset -3px -3px 0 rgba(0,0,0,.3),0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink)}
+.zone{min-height:74px;background:var(--ink);padding:8px;display:flex;flex-wrap:wrap;gap:8px;margin:8px 4px;align-content:flex-start}
+.tile2{border:0;background:var(--gold);color:var(--ink);font-size:26px;padding:6px 12px 8px;cursor:pointer;margin:2px;
+  box-shadow:inset -3px -4px 0 rgba(0,0,0,.28),0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink)}
+.zone.ans .tile2{background:var(--blue)}
+.say{color:var(--dim);margin:6px 4px;text-align:center;min-height:26px}
+.fb{padding:14px 16px;margin-block:18px;background:var(--panel);animation:rise .3s steps(4)}
+.fb.good{background:#1f6b49}
+.fb.bad{background:#7a2a46}
+.fbh{font-family:var(--f-px);font-size:12px;line-height:1.7;margin-bottom:6px}
+.fbc{font-size:26px}
+.fbc i{color:var(--gold);font-style:normal}
+.diff span{padding:0 4px;margin-right:4px;display:inline-block}
+.diff .g{background:var(--green);color:var(--ink)}
+.diff .w{background:var(--gold);color:var(--ink)}
+.diff .r{background:var(--red);color:#fff}
+@keyframes rise{from{transform:translateY(12px);opacity:0}}
+.pop{animation:rise .3s steps(4)}
+
+/* leçon */
+.flash{text-align:center;padding:18px 12px 22px}
+.flash .fw{font-size:54px;margin:10px 0 4px;overflow-wrap:anywhere}
+.flash .tw{font-size:34px;color:var(--gold);margin-bottom:12px}
+.flash .ex{background:var(--ink);padding:10px;margin-top:12px;font-size:26px}
+.flash .ex small{display:block;color:var(--dim);margin-top:4px}
+.dots{display:flex;gap:4px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+.dots i{width:10px;height:10px;background:var(--ink)}
+.dots i.on{background:var(--gold)}
+.wl{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:24px}
+.wl div{min-width:0;overflow-wrap:anywhere}
+.wl .t{color:var(--dim)}
+
+/* calendrier */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:10px 4px}
+.cal .hd{font-family:var(--f-px);font-size:9px;color:var(--dim);text-align:center;padding:6px 0}
+.day{border:0;aspect-ratio:1;min-width:0;background:var(--panel);color:var(--text);font-size:24px;padding:3px 0 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.day small{font-size:16px;color:inherit;opacity:.85;min-height:14px}
+.day.l1{background:#27507a}
+.day.l2{background:#1f7a6a}
+.day.l3{background:#2fa35f;color:var(--ink)}
+.day.l4{background:var(--green);color:var(--ink)}
+.day.today{box-shadow:0 0 0 4px var(--gold)}
+.day.sel{box-shadow:0 0 0 4px var(--pink)}
+.day.void{background:transparent;cursor:default}
+.mnav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mnav .h1{margin:0;text-align:center;flex:1}
+.legend{display:flex;gap:6px;align-items:center;font-size:18px;color:var(--dim);margin:4px;flex-wrap:wrap}
+.legend i{width:16px;height:16px;display:inline-block}
+
+/* cadeaux */
+.gifts{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:10px 4px}
+.gift{background:var(--panel);padding:12px 8px 14px;text-align:center;margin:4px;min-width:0}
+.gift canvas{width:45px;height:60px;image-rendering:pixelated;display:block;margin:0 auto 6px}
+.gift.lock canvas{filter:brightness(0) opacity(.45)}
+.gift b{display:block;font-weight:400;font-size:24px}
+.gift small{display:block;color:var(--dim);font-size:20px;margin:2px 0 6px}
+.gift .btn{margin:8px 0 2px;width:100%;font-size:22px;padding:8px 6px 12px}
+.gift.open{background:#27507a}
+.box{width:96px;height:96px;margin:10px auto;position:relative;animation:shake .5s steps(4) 3}
+.box .b1{position:absolute;left:0;right:0;bottom:0;height:60px;background:var(--red);box-shadow:inset -8px -8px 0 rgba(0,0,0,.25)}
+.box .b2{position:absolute;left:-8px;right:-8px;top:8px;height:32px;background:var(--pink);box-shadow:inset -8px -6px 0 rgba(0,0,0,.2);animation:lid 1.5s steps(6) forwards}
+.box .rb{position:absolute;left:40px;width:16px;top:8px;bottom:0;background:var(--gold)}
+@keyframes lid{0%,60%{transform:none}100%{transform:translate(18px,-46px) rotate(18deg);opacity:0}}
+.reveal canvas{width:90px;height:120px;image-rendering:pixelated;display:block;margin:6px auto;animation:rise .6s steps(6) 1.4s both}
+.msg{background:var(--ink);padding:12px;margin:10px 4px;font-size:26px}
+.msg small{display:block;color:var(--dim);margin-top:6px}
+
+/* résumé */
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 4px}
+.sum .tile b{font-size:17px}
+.warn{background:#5a3a14;padding:10px 12px;margin:10px 4px;font-size:22px}
+textarea.inp{font-size:18px;min-height:96px;resize:vertical;word-break:break-all}
+select.inp{font-size:26px}
+label{display:block;margin:12px 4px 2px;color:var(--dim)}
+
+/* navigation */
+#nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);padding:8px max(8px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-right,0px))}
+#nav[hidden]{display:none}
+#navin{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.nb{border:0;background:transparent;color:var(--dim);padding:6px 0 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:17px;line-height:1;position:relative;min-width:0}
+.nb .fr,.nb .tr{text-align:center}
+.nb .fr{font-size:17px}
+.nb .tr{font-size:14px}
+.nb.on{color:var(--gold)}
+.nb .dot{position:absolute;top:2px;right:22%;width:10px;height:10px;background:var(--red)}
+#toast{position:fixed;left:50%;top:max(14px,env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--gold);color:var(--ink);padding:10px 14px;z-index:60;max-width:90vw;box-shadow:0 0 0 4px var(--ink);animation:rise .3s steps(4)}
+#overlay{position:fixed;inset:0;z-index:50;background:rgba(8,9,24,.82);display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-left,0px))}
+#overlay[hidden]{display:none}
+#overlay .modal{background:var(--panel);padding:18px;width:min(100%,460px);max-height:88vh;overflow:auto;margin:4px}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:70;overflow:hidden}
+#fx i{position:absolute;top:-12px;width:10px;height:10px;animation:fall 1.8s steps(14) forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(180deg)}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}
+  .cloud{animation:none}
+}
+</style>
+</head><body>
+
+
+<div id="stars" aria-hidden="true"></div>
+<div id="app"></div>
+<nav id="nav" aria-label="Navigation"><div id="navin"></div></nav>
+<div id="overlay" hidden></div>
+<div id="fx" aria-hidden="true"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ───────── Données du cours : A0 vers A1 ───────── */
+/* chaque mot : [français, turc, phrase d'exemple, traduction de la phrase] */
+const WEEKS={
+  1:{fr:"Premiers mots",tr:"İlk kelimeler"},
+  2:{fr:"Mon monde",tr:"Benim dünyam"},
+  3:{fr:"Au quotidien",tr:"Günlük hayat"},
+  4:{fr:"Dehors",tr:"Dışarıda"}
+};
+const UNITS=[
+{id:1,wk:1,fr:"Saluer",tr:"Selamlaşma",w:[
+["Bonjour","Merhaba (gündüz)","Bonjour, madame !","Merhaba, hanımefendi!"],
+["Bonsoir","İyi akşamlar","Bonsoir, monsieur !","İyi akşamlar, beyefendi!"],
+["Salut","Selam","Salut, Aslı !","Selam, Aslı!"],
+["Au revoir","Hoşça kal / Görüşürüz","Au revoir, à demain !","Güle güle, yarın görüşürüz!"],
+["Bonne nuit","İyi geceler","Bonne nuit, ma chérie.","İyi geceler, canım."],
+["Merci","Teşekkürler","Merci beaucoup !","Çok teşekkürler!"],
+["S'il vous plaît","Lütfen","Un café, s'il vous plaît.","Bir kahve, lütfen."],
+["Pardon","Pardon / Affedersiniz","Pardon, madame.","Affedersiniz, hanımefendi."],
+["Oui","Evet","Oui, c'est bon.","Evet, tamam."],
+["Non","Hayır","Non, merci beaucoup.","Hayır, çok teşekkürler."],
+["Ça va ?","Nasılsın?","Ça va bien, merci.","İyiyim, teşekkürler."]
+]},
+{id:2,wk:1,fr:"Se présenter",tr:"Kendini tanıtma",w:[
+["Je m'appelle","Benim adım …","Je m'appelle Aslı.","Benim adım Aslı."],
+["Comment tu t'appelles ?","Adın ne?","Salut ! Comment tu t'appelles ?","Selam! Adın ne?"],
+["Je suis","Ben … (im)","Je suis turque.","Ben Türküm."],
+["turque / turc","Türk","Elle est turque.","O Türk."],
+["français / française","Fransız","Il est français.","O Fransız."],
+["J'habite","Yaşıyorum / Oturuyorum","J'habite en France.","Fransa'da yaşıyorum."],
+["J'ai … ans","… yaşındayım","J'ai trente ans.","Otuz yaşındayım."],
+["Enchanté(e)","Memnun oldum","Enchantée, madame !","Memnun oldum, hanımefendi!"],
+["Et vous ?","Ya siz?","Je vais bien. Et vous ?","İyiyim. Ya siz?"],
+["Je parle turc","Türkçe konuşuyorum","Je parle turc et un peu français.","Türkçe ve biraz Fransızca konuşuyorum."],
+["Je ne comprends pas","Anlamıyorum","Pardon, je ne comprends pas.","Affedersiniz, anlamıyorum."],
+["Répétez, s'il vous plaît","Tekrar eder misiniz, lütfen?","Répétez, s'il vous plaît, madame.","Tekrar eder misiniz lütfen, hanımefendi?"],
+["Parlez lentement","Yavaş konuşun","Parlez lentement, s'il vous plaît.","Yavaş konuşun, lütfen."]
+]},
+{id:3,wk:1,fr:"Les nombres de 0 à 10",tr:"0'dan 10'a sayılar",w:[
+["zéro","sıfır","Il fait zéro degré.","Hava sıfır derece."],
+["un","bir","J'ai un frère.","Bir erkek kardeşim var."],
+["deux","iki","Deux thés, s'il vous plaît.","İki çay, lütfen."],
+["trois","üç","Il y a trois chaises.","Üç sandalye var."],
+["quatre","dört","J'ai quatre amis.","Dört arkadaşım var."],
+["cinq","beş","Il est cinq heures.","Saat beş."],
+["six","altı","Six euros, merci.","Altı euro, teşekkürler."],
+["sept","yedi","Une semaine, sept jours.","Bir hafta, yedi gün."],
+["huit","sekiz","J'ai huit euros.","Sekiz euro'm var."],
+["neuf","dokuz","Il est neuf heures.","Saat dokuz."],
+["dix","on","Dix minutes, s'il vous plaît.","On dakika, lütfen."]
+]},
+{id:4,wk:2,fr:"Les nombres jusqu'à 100",tr:"100'e kadar sayılar",w:[
+["onze","on bir","Il est onze heures.","Saat on bir."],
+["douze","on iki","Il y a douze mois.","On iki ay var."],
+["quinze","on beş","Il est quinze heures.","Saat on beş (15:00)."],
+["vingt","yirmi","Ça coûte vingt euros.","Yirmi euro tutuyor."],
+["trente","otuz","Le mois a trente jours.","Ay otuz gün."],
+["quarante","kırk","J'ai quarante euros.","Kırk euro'm var."],
+["cinquante","elli","Ça fait cinquante euros.","Bu elli euro ediyor."],
+["soixante","altmış","Une heure, c'est soixante minutes.","Bir saat altmış dakikadır."],
+["cent","yüz","Cent euros, s'il vous plaît.","Yüz euro, lütfen."],
+["Quel âge avez-vous ?","Kaç yaşındasınız?","Quel âge a votre fils ?","Oğlunuz kaç yaşında?"],
+["Mon numéro de téléphone","Telefon numaram","Voici mon numéro de téléphone.","İşte telefon numaram."]
+]},
+{id:5,wk:2,fr:"La famille",tr:"Aile",w:[
+["la mère","anne","Ma mère habite en Turquie.","Annem Türkiye'de yaşıyor."],
+["le père","baba","Mon père est gentil.","Babam nazik."],
+["le frère","erkek kardeş","Mon frère a dix ans.","Erkek kardeşim on yaşında."],
+["la sœur","kız kardeş","Ma sœur est belle.","Kız kardeşim güzel."],
+["le mari","koca / eş","Mon mari est gentil.","Kocam nazik."],
+["la femme","kadın / eş","Ma femme est ma reine.","Eşim benim kraliçem."],
+["l'enfant","çocuk","L'enfant est petit.","Çocuk küçük."],
+["le fils","oğul","Mon fils est grand.","Oğlum büyük."],
+["la fille","kız (evlat)","Ma fille est petite.","Kızım küçük."],
+["les parents","anne baba","Mes parents sont en Turquie.","Annem babam Türkiye'de."],
+["la famille","aile","J'aime ma famille.","Ailemi seviyorum."],
+["la grand-mère","büyükanne","Ma grand-mère est âgée.","Büyükannem yaşlı."]
+]},
+{id:6,wk:2,fr:"Les couleurs",tr:"Renkler",w:[
+["rouge","kırmızı","La tulipe est rouge.","Lale kırmızı."],
+["bleu","mavi","Le ciel est bleu.","Gökyüzü mavi."],
+["vert","yeşil","L'herbe est verte.","Çimen yeşil."],
+["jaune","sarı","Le citron est jaune.","Limon sarı."],
+["blanc","beyaz","La neige est blanche.","Kar beyaz."],
+["noir","siyah","La nuit est noire.","Gece siyah."],
+["rose","pembe","La fleur est rose.","Çiçek pembe."],
+["orange","turuncu","L'orange est orange.","Portakal turuncu."],
+["gris","gri","Le chat est gris.","Kedi gri."],
+["violet","mor","Le raisin est violet.","Üzüm mor."]
+]},
+{id:7,wk:2,fr:"Les objets et le, la, un, une",tr:"Eşyalar ve tanımlıklar",w:[
+["un livre","bir kitap","C'est un livre.","Bu bir kitap."],
+["une table","bir masa","La table est grande.","Masa büyük."],
+["une chaise","bir sandalye","Il y a une chaise.","Bir sandalye var."],
+["un stylo","bir kalem","Je cherche un stylo.","Bir kalem arıyorum."],
+["un cahier","bir defter","Mon cahier est bleu.","Defterim mavi."],
+["un téléphone","bir telefon","Mon téléphone est ici.","Telefonum burada."],
+["une clé","bir anahtar","Où est la clé ?","Anahtar nerede?"],
+["un sac","bir çanta","Le sac est noir.","Çanta siyah."],
+["C'est","Bu … / Bu bir …","C'est une clé.","Bu bir anahtar."],
+["Qu'est-ce que c'est ?","Bu nedir?","Qu'est-ce que c'est ? C'est un sac.","Bu nedir? Bu bir çanta."],
+["le, la, les","belirli tanımlık (the)","Le livre, la table, les clés.","Kitap, masa, anahtarlar."],
+["un, une","belirsiz tanımlık (bir)","Un livre, une table.","Bir kitap, bir masa."]
+]},
+{id:8,wk:3,fr:"Manger et boire",tr:"Yemek ve içmek",w:[
+["le pain","ekmek","Le pain est frais.","Ekmek taze."],
+["l'eau","su","Un verre d'eau, s'il vous plaît.","Bir bardak su, lütfen."],
+["le lait","süt","Le lait est froid.","Süt soğuk."],
+["le café","kahve","Un café, s'il vous plaît.","Bir kahve, lütfen."],
+["le thé","çay","Je voudrais un thé.","Bir çay istiyorum."],
+["le fromage","peynir","J'aime le fromage.","Peyniri severim."],
+["la pomme","elma","La pomme est rouge.","Elma kırmızı."],
+["Je voudrais","… istiyorum (nazik)","Je voudrais de l'eau.","Su istiyorum."],
+["J'ai faim","Acıktım","J'ai faim, et toi ?","Acıktım, ya sen?"],
+["J'ai soif","Susadım","J'ai soif, je voudrais de l'eau.","Susadım, su istiyorum."],
+["Bon appétit","Afiyet olsun","Bon appétit, ma chérie !","Afiyet olsun, canım!"]
+]},
+{id:9,wk:3,fr:"À la maison",tr:"Evde",w:[
+["la maison","ev","Ma maison est petite.","Evim küçük."],
+["l'appartement","daire","J'habite dans un appartement.","Bir dairede yaşıyorum."],
+["la cuisine","mutfak","La cuisine est propre.","Mutfak temiz."],
+["la chambre","yatak odası","La chambre est grande.","Yatak odası büyük."],
+["la salle de bain","banyo","La salle de bain est ici.","Banyo burada."],
+["le salon","oturma odası","Le salon est beau.","Oturma odası güzel."],
+["la porte","kapı","La porte est ouverte.","Kapı açık."],
+["la fenêtre","pencere","La fenêtre est fermée.","Pencere kapalı."],
+["le lit","yatak","Le lit est confortable.","Yatak rahat."],
+["Il y a","… var","Il y a un lit dans la chambre.","Odada bir yatak var."],
+["ici / là","burada / orada","Le sac est ici, la clé est là.","Çanta burada, anahtar orada."]
+]},
+{id:10,wk:3,fr:"Les jours et le temps",tr:"Günler ve zaman",w:[
+["lundi","pazartesi","Aujourd'hui, c'est lundi.","Bugün pazartesi."],
+["mardi","salı","Demain, c'est mardi.","Yarın salı."],
+["mercredi","çarşamba","Mercredi, il pleut.","Çarşamba yağmur yağıyor."],
+["jeudi","perşembe","Jeudi, je suis fatiguée.","Perşembe yorgunum."],
+["vendredi","cuma","Vendredi, c'est presque le week-end.","Cuma neredeyse hafta sonu."],
+["samedi","cumartesi","Samedi, je suis à la maison.","Cumartesi evdeyim."],
+["dimanche","pazar","Dimanche, c'est le week-end.","Pazar hafta sonu."],
+["aujourd'hui","bugün","Aujourd'hui, il fait beau.","Bugün hava güzel."],
+["demain","yarın","Demain, je suis libre.","Yarın boşum."],
+["hier","dün","Hier, c'était dimanche.","Dün pazardı."]
+]},
+{id:11,wk:4,fr:"En ville",tr:"Şehirde",w:[
+["la boulangerie","fırın / ekmekçi","La boulangerie est à droite.","Fırın sağda."],
+["la pharmacie","eczane","La pharmacie est près d'ici.","Eczane buraya yakın."],
+["l'hôpital","hastane","L'hôpital est grand.","Hastane büyük."],
+["la mairie","belediye","La mairie est ouverte.","Belediye açık."],
+["la gare","tren garı","Où est la gare ?","Tren garı nerede?"],
+["le bus","otobüs","Le bus arrive.","Otobüs geliyor."],
+["le supermarché","süpermarket","Le supermarché est fermé.","Süpermarket kapalı."],
+["la rue","sokak","La rue est longue.","Sokak uzun."],
+["à droite","sağda / sağa","Tournez à droite.","Sağa dönün."],
+["à gauche","solda / sola","Tournez à gauche.","Sola dönün."],
+["tout droit","dümdüz","Allez tout droit.","Dümdüz gidin."],
+["Où est … ?","… nerede?","Où est la pharmacie, s'il vous plaît ?","Eczane nerede, lütfen?"]
+]},
+{id:12,wk:4,fr:"Faire les courses",tr:"Alışveriş",w:[
+["Combien ça coûte ?","Ne kadar?","Combien ça coûte, s'il vous plaît ?","Bu ne kadar, lütfen?"],
+["C'est cher","Pahalı","Oh, c'est trop cher !","Ah, bu çok pahalı!"],
+["Ce n'est pas cher","Pahalı değil","Ce n'est pas cher, je prends ça.","Pahalı değil, bunu alıyorum."],
+["Je cherche","Arıyorum","Je cherche une pharmacie.","Bir eczane arıyorum."],
+["Vous avez … ?","… var mı?","Vous avez du pain ?","Ekmeğiniz var mı?"],
+["Je prends ça","Bunu alıyorum","Je prends ça, merci.","Bunu alıyorum, teşekkürler."],
+["Voilà","Buyurun / İşte","Voilà, c'est pour vous.","Buyurun, bu sizin için."],
+["l'argent","para","Je n'ai pas d'argent.","Param yok."],
+["la carte bancaire","banka kartı","Par carte bancaire, s'il vous plaît.","Kartla, lütfen."],
+["en espèces","nakit","En espèces, s'il vous plaît.","Nakit, lütfen."],
+["le ticket","fiş","Je voudrais le ticket.","Fişi istiyorum."],
+["un euro","bir euro","C'est un euro cinquante.","Bir euro elli sent."]
+]},
+{id:13,wk:4,fr:"Être, avoir, aller, vouloir",tr:"Olmak, sahip olmak, gitmek, istemek",w:[
+["je suis","ben … (im)","Je suis fatiguée.","Yorgunum."],
+["tu es","sen … (sin)","Tu es gentille.","Sen naziksin."],
+["il est / elle est","o … (dir)","Il est à la maison.","O evde."],
+["nous sommes","biz … (iz)","Nous sommes ensemble.","Biz birlikteyiz."],
+["vous êtes","siz … (siniz)","Vous êtes française ?","Fransız mısınız?"],
+["ils sont / elles sont","onlar … (dir)","Ils sont contents.","Onlar mutlu."],
+["j'ai","benim … var","J'ai une sœur.","Bir kız kardeşim var."],
+["tu as","senin … var","Tu as un stylo ?","Kalemin var mı?"],
+["il a / elle a","onun … var","Elle a une clé.","Onun bir anahtarı var."],
+["je vais","gidiyorum","Je vais à la gare.","Tren garına gidiyorum."],
+["je veux","istiyorum","Je veux apprendre le français.","Fransızca öğrenmek istiyorum."]
+]}
+];
+UNITS.forEach(u=>{u.words=u.w.map(([fr,tr,xf,xt])=>({fr,tr,xf,xt,u:u.id}));});
+const ALLW=UNITS.flatMap(u=>u.words);
+const UNIT=id=>UNITS.find(u=>u.id===id);
+
+/* Cadeaux : messages modifiables ici */
+const GIFTS=[
+ {id:'s1',k:'s',need:1,color:'#ff4d5e',n:"Lale rouge",nt:"Kırmızı lale",fr:"Premier jour ! Tu as planté ta première tulipe, ma reine.",tr:"İlk gün! İlk lalenı diktin, kraliçem."},
+ {id:'s3',k:'s',need:3,color:'#ff8fca',n:"Lale rose",nt:"Pembe lale",fr:"Trois jours de suite ! Je suis tellement fier de toi.",tr:"Üst üste üç gün! Seninle çok gurur duyuyorum."},
+ {id:'s5',k:'s',need:5,color:'#ffd24a',n:"Lale jaune",nt:"Sarı lale",fr:"Cinq jours ! Ton français devient joli, comme toi.",tr:"Beş gün! Fransızcan güzelleşiyor, tıpkı senin gibi."},
+ {id:'s7',k:'s',need:7,color:'#ff9a3c',n:"Lale orange",nt:"Turuncu lale",fr:"Une semaine entière ! Tu es incroyable, Aslı.",tr:"Koca bir hafta! Harikasın Aslı."},
+ {id:'s10',k:'s',need:10,color:'#a088ff',n:"Lale violette",nt:"Mor lale",fr:"Dix jours ! Les fleurs poussent grâce à toi.",tr:"On gün! Çiçekler senin sayende büyüyor."},
+ {id:'s14',k:'s',need:14,color:'#5ab4ff',n:"Lale bleue",nt:"Mavi lale",fr:"Deux semaines ! J'adore t'écouter parler français.",tr:"İki hafta! Fransızca konuşmanı dinlemeye bayılıyorum."},
+ {id:'s21',k:'s',need:21,color:'#3fe0c5',n:"Lale turquoise",nt:"Turkuaz lale",fr:"Vingt et un jours : c'est une vraie habitude. Bravo, ma chérie !",tr:"Yirmi bir gün: gerçek bir alışkanlık. Aferin canım!"},
+ {id:'s30',k:'s',need:30,color:'#f4f4ff',n:"Lale blanche",nt:"Beyaz lale",fr:"Un mois ! Tu peux être très fière de toi.",tr:"Bir ay! Kendinle gurur duyabilirsin."},
+ {id:'s45',k:'s',need:45,color:'#ff6fa0',n:"Lale framboise",nt:"Ahududu lalesi",fr:"Quarante-cinq jours ! Ton jardin est magnifique.",tr:"Kırk beş gün! Bahçen muhteşem."},
+ {id:'s60',k:'s',need:60,color:'#ffc400',n:"Lale dorée",nt:"Altın lale",fr:"Soixante jours ! Rien ne t'arrête, ma reine.",tr:"Altmış gün! Seni hiçbir şey durduramaz, kraliçem."},
+ {id:'t1',k:'t',need:1,color:'#c9a0ff',n:"Lale lilas",nt:"Leylak lale",fr:"Une heure de français ! Premier grand pas.",tr:"Bir saat Fransızca! İlk büyük adım."},
+ {id:'t3',k:'t',need:3,color:'#7fe35a',n:"Lale citron vert",nt:"Misket limonu lalesi",fr:"Trois heures ! Les mots restent dans ta tête.",tr:"Üç saat! Kelimeler aklında kalıyor."},
+ {id:'t5',k:'t',need:5,color:'#ff7a59',n:"Lale corail",nt:"Mercan lale",fr:"Cinq heures ! Tu parles de mieux en mieux.",tr:"Beş saat! Gittikçe daha iyi konuşuyorsun."},
+ {id:'t10',k:'t',need:10,color:'#4aa3ff',n:"Lale saphir",nt:"Safir lale",fr:"Dix heures ! Tu es une championne.",tr:"On saat! Sen bir şampiyonsun."},
+ {id:'t25',k:'t',need:25,color:'#ffe27a',n:"Lale soleil",nt:"Güneş lalesi",fr:"Vingt-cinq heures ! Le niveau A1 est tout proche.",tr:"Yirmi beş saat! A1 seviyesi çok yakın."}
+];
+
+/* ───────── Outils ───────── */
+const $=(s,e)=>(e||document).querySelector(s);
+const $$=(s,e)=>[...(e||document).querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const b=(fr,tr)=>'<span class="fr">'+fr+'</span><span class="tr">'+tr+'</span>';
+const VERSION='V1.4.1';
+const UEMO={1:'👋',2:'🙋‍♀️',3:'🔢',4:'💯',5:'👪',6:'🎨',7:'🎒',8:'🍽️',9:'🏠',10:'📅',11:'🏙️',12:'🛒',13:'✨'};
+const EMO={"Bonjour":"☀️","Bonsoir":"🌙","Salut":"🙋‍♀️","Au revoir":"👋","Bonne nuit":"😴","Merci":"🙏","S'il vous plaît":"🤝","Pardon":"🙇‍♀️","Oui":"✅","Non":"❌","Ça va ?":"😊",
+"Je m'appelle":"🪪","Comment tu t'appelles ?":"❓","Je suis":"🙋‍♀️","turque / turc":"🇹🇷","français / française":"🇫🇷","J'habite":"🏡","J'ai … ans":"🎂","Enchanté(e)":"🤝","Et vous ?":"💬","Je parle turc":"🗣️","Je ne comprends pas":"🤷‍♀️","Répétez, s'il vous plaît":"🔁","Parlez lentement":"🐢",
+"zéro":"0️⃣","un":"1️⃣","deux":"2️⃣","trois":"3️⃣","quatre":"4️⃣","cinq":"5️⃣","six":"6️⃣","sept":"7️⃣","huit":"8️⃣","neuf":"9️⃣","dix":"🔟",
+"onze":"🔢","douze":"🔢","quinze":"🔢","vingt":"🔢","trente":"🔢","quarante":"🔢","cinquante":"🔢","soixante":"🔢","cent":"💯","Quel âge avez-vous ?":"🎂","Mon numéro de téléphone":"📱",
+"la mère":"👩","le père":"👨","le frère":"👦","la sœur":"👧","le mari":"🤵","la femme":"👰","l'enfant":"🧒","le fils":"👦","la fille":"👧","les parents":"👨‍👩‍👧","la famille":"👪","la grand-mère":"👵",
+"rouge":"🔴","bleu":"🔵","vert":"🟢","jaune":"🟡","blanc":"⚪","noir":"⚫","rose":"🩷","orange":"🟠","gris":"🩶","violet":"🟣",
+"un livre":"📖","une chaise":"🪑","un stylo":"🖊️","un cahier":"📓","un téléphone":"📱","une clé":"🔑","un sac":"👜","C'est":"👉","Qu'est-ce que c'est ?":"❓","le, la, les":"🔤","un, une":"🔤",
+"le pain":"🍞","l'eau":"💧","le lait":"🥛","le café":"☕","le thé":"🫖","le fromage":"🧀","la pomme":"🍎","Je voudrais":"🙋","J'ai faim":"🤤","J'ai soif":"🥤","Bon appétit":"😋",
+"la maison":"🏠","l'appartement":"🏢","la cuisine":"🍳","la chambre":"🛏️","la salle de bain":"🛁","le salon":"🛋️","la porte":"🚪","la fenêtre":"🪟","le lit":"🛏️","Il y a":"👀","ici / là":"📍",
+"lundi":"📅","mardi":"📅","mercredi":"📅","jeudi":"📅","vendredi":"📅","samedi":"📅","dimanche":"📅","aujourd'hui":"📆","demain":"⏭️","hier":"⏮️",
+"la boulangerie":"🥖","la pharmacie":"💊","l'hôpital":"🏥","la mairie":"🏛️","la gare":"🚉","le bus":"🚌","le supermarché":"🛒","la rue":"🛣️","à droite":"➡️","à gauche":"⬅️","tout droit":"⬆️","Où est … ?":"🗺️",
+"Combien ça coûte ?":"💶","C'est cher":"💸","Ce n'est pas cher":"👍","Je cherche":"🔎","Vous avez … ?":"🤔","Je prends ça":"🛍️","Voilà":"🤲","l'argent":"💰","la carte bancaire":"💳","en espèces":"💵","le ticket":"🧾","un euro":"💶",
+"je suis":"🙋‍♀️","tu es":"🫵","il est / elle est":"🧍","nous sommes":"👫","vous êtes":"👥","ils sont / elles sont":"👯","j'ai":"🤲","tu as":"🫴","il a / elle a":"✋","je vais":"🚶‍♀️","je veux":"🙏"};
+const emo=w=>EMO[w.fr]||'';
+const pad=n=>String(n).padStart(2,'0');
+const dkey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayK=()=>dkey(new Date());
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const strip=s=>s.toLowerCase().replace(/œ/g,'oe').replace(/[’‘`]/g,"'").replace(/[^\p{L}\p{N}' ]/gu,' ').replace(/\s+/g,' ').trim();
+const norm=s=>strip(s).normalize('NFD').replace(/[̀-ͯ]/g,'');
+function lev(a,c){const m=a.length,n=c.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===c[j-1]?0:1));return d[m][n];}
+function toks(s){const r=[];s.split(' ').forEach(t=>{if(/^[?!:;]$/.test(t)&&r.length)r[r.length-1]+=' '+t;else r.push(t);});return r;}
+const fmtDur=sec=>{const m=Math.round(sec/60);return m<60?m+' min':Math.floor(m/60)+' h '+pad(m%60);};
+
+/* ───────── Sauvegarde ───────── */
+const KEY='asli-jardin-v1';
+const DEF={v:1,name:'Aslı',goalMin:10,ui:'both',sound:true,amb:true,mic:'unset',micAsked:false,slow:false,xp:0,days:{},units:{},words:{},gifts:{},tests:[],last:{min:10,mode:'mix',scope:'path'},created:Date.now()};
+let storageOk=true;
+function load(){
+  try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);return Object.assign(JSON.parse(JSON.stringify(DEF)),o);}}catch(e){storageOk=false;}
+  return JSON.parse(JSON.stringify(DEF));
+}
+let S=load(),lastSave=0,saveT=0;
+function save(now){
+  const go=()=>{S.upd=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){storageOk=false;}lastSave=Date.now();cloudDirty();};
+  if(now){clearTimeout(saveT);saveT=0;go();}
+  else if(Date.now()-lastSave>3000)go();
+  else if(!saveT)saveT=setTimeout(()=>{saveT=0;go();},3000);
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save(true);});
+window.addEventListener('pagehide',()=>save(true));
+const enc=o=>{const by=new TextEncoder().encode(JSON.stringify(o));let s='';by.forEach(x=>s+=String.fromCharCode(x));return btoa(s);};
+const dec=c=>{const s=atob(c.replace(/\s+/g,''));return JSON.parse(new TextDecoder().decode(Uint8Array.from(s,ch=>ch.charCodeAt(0))));};
+
+/* ───────── Sauvegarde en ligne (compte Claude) : survit à la fermeture et au changement de téléphone ───────── */
+let cloudRef=null,cloudSt='off',cloudT=0,cloudBusy=false,cloudAgain=false;
+function cloudDirty(){if(!cloudRef||cloudT)return;cloudT=setTimeout(()=>{cloudT=0;cloudPush();},5000);}
+async function cloudPush(){
+  if(!cloudRef)return;if(cloudBusy){cloudAgain=true;return;}
+  cloudBusy=true;
+  try{await cloudRef.set({upd:S.upd||Date.now(),code:enc(S)});cloudSt='ok';}catch(e){cloudSt='err';}
+  cloudBusy=false;if(cloudAgain){cloudAgain=false;cloudDirty();}
+  const el=$('#cloudst');if(el)el.innerHTML=cloudHtml();
+}
+function cloudHtml(){
+  return cloudSt==='ok'?'☁️ '+b('Progression sauvegardée en ligne','İlerleme çevrimiçi kaydedildi'):
+   '⚠️ '+b("Sauvegardée seulement sur cet appareil. Utilise le code dans Réglages.","Yalnızca bu cihazda kayıtlı. Ayarlar'daki kodu kullan.");
+}
+async function cloudInit(){
+  try{
+    const db=await window.claude.use('db'),user=await window.claude.use('user');
+    if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    cloudRef=db.doc('data/users/'+id+'/progress');
+    const snap=await cloudRef.get();
+    if(snap.exists){
+      const d=snap.data();
+      if(d&&d.code&&(d.upd||0)>(S.upd||0)){
+        const o=dec(d.code);
+        if(o&&o.days){S=Object.assign(JSON.parse(JSON.stringify(DEF)),o);try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+          if(!learning){render();toast(b('Progression retrouvée en ligne !','İlerleme çevrimiçi bulundu!'));}}
+      }else if(!d||(d.upd||0)<(S.upd||0)){await cloudPush();}
+    }else if(S.upd){await cloudPush();}
+    cloudSt='ok';
+    const el=$('#cloudst');if(el)el.innerHTML=cloudHtml();
+  }catch(e){cloudSt='err';}
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&cloudRef){clearTimeout(cloudT);cloudT=0;cloudPush();}});
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+
+const day=(k)=>{k=k||todayK();return S.days[k]||(S.days[k]={sec:0,xp:0,ex:0,ok:0});};
+
+function diffDays(a,c){return Math.round((new Date(c+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);}
+const dayOK=k=>{const d=S.days[k];return !!d&&d.sec>=120;};
+function streaks(){
+  const keys=Object.keys(S.days).filter(dayOK).sort();let best=0,run=0,prev=null;
+  keys.forEach(k=>{run=(prev&&diffDays(prev,k)===1)?run+1:1;best=Math.max(best,run);prev=k;});
+  let cur=0;const d=new Date();if(!dayOK(dkey(d)))d.setDate(d.getDate()-1);
+  while(dayOK(dkey(d))){cur++;d.setDate(d.getDate()-1);}
+  return {cur,best};
+}
+const totalSec=()=>Object.values(S.days).reduce((a,d)=>a+(d.sec||0),0);
+const totalEx=()=>Object.values(S.days).reduce((a,d)=>[a[0]+(d.ex||0),a[1]+(d.ok||0)],[0,0]);
+const recUnit=()=>UNITS.find(u=>!(S.units[u.id]&&S.units[u.id].done))||null;
+const giftReady=g=>g.k==='s'?streaks().best>=g.need:totalSec()>=g.need*3600;
+const giftsAvail=()=>GIFTS.filter(g=>giftReady(g)&&!S.gifts[g.id]).length;
+
+/* ───────── Pixel art ───────── */
+const IC={
+ home:["...##...","..####..",".######.","########",".##..##.",".##..##.",".##..##.",".######."],
+ path:["#####...","######..","#####...","#.......","#.......","#.......","#.......","#......."],
+ cal:["..#..#..","########","#......#","#.##.#.#","#......#","#.##.#.#","#......#","########"],
+ gift:["...##...","..#..#..","########","#..##..#","########","#..##..#","#..##..#","########"],
+ gear:["..#..#..",".######.","###..###",".#....#.",".#....#.","###..###",".######.","..#..#.."],
+ flame:[".....#..","....##..","...###..","..####.#",".######.","########","########",".######."],
+ star:["...##...","...##...","########",".######.","..####..","..####..",".##..##.","##....##"],
+ spk:["...#....","..##..#.",".###...#","####.#.#","####.#.#",".###...#","..##..#.","...#...."],
+ check:["........",".......#","......##","#....##.","##..##..",".####...","..##....","........"],
+ clock:[".######.","#..#...#","#..#...#","#..###.#","#......#","#......#",".######.","........"],
+ x:["#......#",".#....#.","..#..#..","...##...","...##...","..#..#..",".#....#.","#......#"],
+ mic:["..####..","..####..","..####..","#.####.#","#......#",".######.","...##...",".######."],
+ pause:["........",".##..##.",".##..##.",".##..##.",".##..##.",".##..##.",".##..##.","........"],
+ lock:["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
+ heart:[".##..##.","########","########","########",".######.","..####..","...##...","........"]
+};
+function icon(n,color,size){
+  let r='';IC[n].forEach((row,y)=>[...row].forEach((c,x)=>{if(c==='#')r+='<rect x="'+x+'" y="'+y+'" width="1" height="1"/>';}));
+  return '<svg class="ic" width="'+(size||24)+'" height="'+(size||24)+'" viewBox="0 0 8 8" fill="'+(color||'currentColor')+'" shape-rendering="crispEdges" aria-hidden="true">'+r+'</svg>';
+}
+const TUL={
+ 4:["..P.P.P..","..PPPPP..",".PPpPpPP.",".PPPPPPP.",".PPPPPPP.","..PPPPP..","....G....",".G..G..G.",".GG.G.GG.","..GGGGG..","....G....","....G...."],
+ 3:[".........","....P....","...PPP...","..PPPPP..","..PPpPP..","..PPPPP..","...PPP...","....G....",".G..G..G.",".GG.G.GG.","..GGGGG..","....G...."],
+ 2:[".........",".........",".........",".........","....P....","...PPP...","...PPP...","....G....",".G..G..G.",".GG.G.GG.","..GGGGG..","....G...."],
+ 1:[".........",".........",".........",".........",".........",".........",".........","..G...G..","...G.G...","....G....","....G....","....G...."],
+ 0:[".........",".........",".........",".........",".........",".........",".........",".........",".........",".........","....D....","..DDDDD.."]
+};
+function shade(hex,a){const n=parseInt(hex.slice(1),16);const f=c=>Math.round(c+(255-c)*a);return 'rgb('+f(n>>16)+','+f((n>>8)&255)+','+f(n&255)+')';}
+function drawFlower(cv,color,stage){
+  cv.width=9;cv.height=12;const c=cv.getContext('2d');if(!c)return;
+  TUL[stage].forEach((row,y)=>[...row].forEach((ch,x)=>{
+    if(ch==='.')return;
+    c.fillStyle=ch==='P'?color:ch==='p'?shade(color,.45):ch==='G'?'#3fbf6a':'#8a5a3b';
+    c.fillRect(x,y,1,1);
+  }));
+}
+const growStage=()=>S.xp<20?0:S.xp<80?1:S.xp<200?2:S.xp<400?3:4;
+function mountGarden(){
+  const el=$('#beds');if(!el)return;
+  const fl=[{c:'#ff4d5e',s:growStage()}];
+  GIFTS.filter(g=>S.gifts[g.id]).forEach(g=>fl.push({c:g.color,s:4}));
+  const show=fl.slice(0,9);
+  show.forEach(f=>{const cv=document.createElement('canvas');drawFlower(cv,f.c,f.s);el.appendChild(cv);});
+}
+
+
+/* ───────── Bella, la mascotte ───────── */
+const BH=["...o....","..owo...","..owwooo","..opwwww",".owwwwww",".owwbbww",".owwbkww",".owwwwwp",".owwwwww","..owwwww","..oowwww",".owwwwww","owwwwwww","owwgwwww","owwwwwww","oooooooo"];
+function drawBella(cv){
+  const col={o:'#9aa3c7',w:'#ffffff',g:'#d6dbf2',p:'#ff9ab0',b:'#5ab4ff',k:'#1b2036'};
+  cv.width=16;cv.height=16;const x=cv.getContext('2d');
+  BH.forEach((row,y)=>{const full=row+[...row].reverse().join('');[...full].forEach((c,i)=>{if(col[c]){x.fillStyle=col[c];x.fillRect(i,y,1,1);}});});
+}
+const BELLA_SAY=[
+ ["Miaou ! On apprend un petit mot aujourd'hui ?","Miyav! Bugün küçük bir kelime öğrenelim mi?"],
+ ["Un peu chaque jour, c'est le secret.","Her gün biraz, sır bu."],
+ ["Tu fais des progrès, je ronronne de fierté.","İlerliyorsun, gurur duyup mırıldanıyorum."],
+ ["Écoute bien, puis répète à voix haute.","İyi dinle, sonra yüksek sesle tekrar et."],
+ ["Même cinq minutes, ça compte.","Sadece beş dakika bile sayılır."],
+ ["Courage, Aslı ! Bella est avec toi.","Cesaret Aslı! Bella seninle."]
+];
+
+/* ───────── Voix et sons ───────── */
+let voices=[];
+function loadVoices(){try{voices=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));}catch(e){}}
+if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
+let warned=false;
+function speak(text,slow){
+  if(!('speechSynthesis' in window)){toast(b("La voix n'est pas disponible ici.","Ses burada kullanılamıyor."));return;}
+  try{
+    speechSynthesis.cancel();
+    const t=text.replace(/…|\.\.\./g,'').replace(/\s\/\s/g,', ').replace(/\(e\)/g,'e').replace(/\s+/g,' ');
+    const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';
+    const v=voices.find(x=>/fr[-_]FR/i.test(x.lang))||voices[0];if(v)u.voice=v;
+    u.rate=slow?0.6:(S.slow?0.75:0.92);
+    speechSynthesis.speak(u);
+    if(!voices.length&&!warned){warned=true;toast(b("Pas de voix française trouvée : ajoute-la dans les réglages du téléphone.","Fransızca ses bulunamadı: telefon ayarlarından ekleyebilirsin."));}
+  }catch(e){}
+}
+let AC=null;
+function beep(f,d,t,v,delay){
+  if(!S.sound)return;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();
+    o.type=t||'square';o.frequency.value=f;o.connect(g);g.connect(AC.destination);const t0=AC.currentTime+(delay||0);
+    g.gain.setValueAtTime(v||.05,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+d);o.start(t0);o.stop(t0+d+.03);}catch(e){}
+}
+const sfx={ok:()=>{beep(660,.09);beep(880,.14,'square',.05,.09);},bad:()=>beep(170,.28,'sawtooth',.05),
+  win:()=>[523,659,784,1046].forEach((f,i)=>beep(f,.16,'square',.05,i*.11)),click:()=>beep(440,.04,'square',.03)};
+function toast(html){
+  let t=$('#toast');if(t)t.remove();t=document.createElement('div');t.id='toast';t.innerHTML=html;document.body.appendChild(t);
+  setTimeout(()=>{if(t.parentNode)t.remove();},3600);
+}
+function confetti(n){
+  const fx=$('#fx');const cols=['#ff4d5e','#ffd24a','#4fe08c','#5ab4ff','#ff8fca','#a088ff'];
+  for(let i=0;i<(n||40);i++){const p=document.createElement('i');p.style.left=Math.random()*100+'%';p.style.background=rnd(cols);
+    p.style.animationDelay=(Math.random()*.6)+'s';fx.appendChild(p);setTimeout(()=>p.remove(),2800);}
+}
+function showOverlay(html){const o=$('#overlay');o.innerHTML='<div class="modal px">'+html+'</div>';o.hidden=false;}
+function closeOverlay(){const o=$('#overlay');o.hidden=true;o.innerHTML='';}
+
+/* ───────── Exercices ───────── */
+const MODES={
+  mix:['fr2tr','tr2fr','listenFr','listenTr','dictee','type','repeat','order','cross'],
+  jeux:['cross','order','listenFr','cross','dictee'],
+  oral:['listenFr','listenTr','repeat','repeat','dictee'],
+  ecrit:['dictee','type','order','tr2fr'],
+  quiz:['fr2tr','tr2fr','listenFr','listenTr']
+};
+const PRAISE=[["Bravo !","Bravo!"],["Super !","Süper!"],["Très bien !","Çok iyi!"],["Parfait !","Mükemmel!"],["Excellent !","Harika!"],["Magnifique !","Muhteşem!"]];
+const OOPS=[["Pas tout à fait.","Tam değil."],["Courage !","Cesaret!"],["Presque !","Neredeyse!"]];
+const spk=t=>'<button class="spk" data-act="say" data-t="'+esc(t)+'">'+icon('spk','currentColor',22)+'</button><button class="spk slow" data-act="sayslow" data-t="'+esc(t)+'">'+icon('spk','currentColor',22)+'<small>'+b('lent','yavaş')+'</small></button>';
+const exInfo=w=>'<b>'+esc(w.fr)+'</b> = '+esc(w.tr)+'<br><i>'+esc(w.xf)+'</i><br><small>'+esc(w.xt)+'</small>';
+
+function targetFor(w,biasWord){
+  if(/[…\/()]/.test(w.fr))return w.xf;
+  return Math.random()<biasWord?w.fr:w.xf;
+}
+function distract(w,f,n){
+  const same=shuffle(ALLW.filter(x=>x.u===w.u&&x.fr!==w.fr)),rest=shuffle(ALLW.filter(x=>x.u!==w.u));
+  const out=[],seen=new Set([w[f]]);
+  [...same.slice(0,2),...rest,...same.slice(2)].forEach(x=>{if(out.length<n&&!seen.has(x[f])){seen.add(x[f]);out.push(x);}});
+  return out;
+}
+function mkMcq(kind,w){
+  const toTr=kind==='fr2tr'||kind==='listenTr';
+  const f=toTr?'tr':'fr';
+  const opts=shuffle([{html:esc(w[f]),ok:true},...distract(w,f,3).map(x=>({html:esc(x[f]),ok:false}))]);
+  const ex={kind:'mcq',w,opts,info:{correct:exInfo(w),say:w.fr}};
+  if(kind==='fr2tr'){ex.head=b('Que veut dire ce mot ?','Bu kelime ne demek?');ex.say=w.fr;ex.prompt='<div class="big">'+esc(w.fr)+'</div>';}
+  if(kind==='tr2fr'){ex.head=b('Comment dit-on en français ?','Fransızcada nasıl denir?');ex.prompt='<div class="big">'+esc(w.tr)+'</div>';}
+  if(kind==='listenFr'){ex.head=b('Écoute et choisis le bon mot','Dinle ve doğru kelimeyi seç');ex.say=w.fr;}
+  if(kind==='listenTr'){ex.head=b('Écoute : que veut dire ce mot ?','Dinle: bu kelime ne demek?');ex.say=w.fr;}
+  return ex;
+}
+function mkEx(t,w){
+  if(['fr2tr','tr2fr','listenFr','listenTr'].includes(t))return mkMcq(t,w);
+  if(t==='dictee'){const tg=targetFor(w,.6);return {kind:'write',w,target:tg,say:tg,head:b('Écoute et écris ce que tu entends','Dinle ve duyduğunu yaz'),prompt:'',info:{correct:exInfo(w),say:tg}};}
+  if(t==='type'){const tg=targetFor(w,.3);return {kind:'write',w,target:tg,head:b('Écris en français','Fransızca yaz'),prompt:'<div class="big">'+esc(tg===w.fr?w.tr:w.xt)+'</div>',info:{correct:exInfo(w),say:tg}};}
+  if(t==='repeat'){const tg=targetFor(w,.5);return {kind:'repeat',w,target:tg,info:{correct:exInfo(w),say:tg}};}
+  if(t==='order'){if(toks(w.xf).length<3)return mkMcq('fr2tr',w);return {kind:'order',w,target:w.xf,head:b('Remets les mots dans l\'ordre','Kelimeleri sıraya diz'),prompt:'<div class="big">'+esc(w.xt)+'</div>',info:{correct:exInfo(w),say:w.xf}};}
+  return mkMcq('fr2tr',w);
+}
+function weight(w,cur,last){
+  const s=S.words[w.fr];let x=(!s||!s.s)?2:0.3+(1-s.c/s.s)*2;
+  if(cur&&w.u===cur)x*=3;if(last.includes(w.fr))x*=0.05;return x;
+}
+function pickWord(pool,cur,last){
+  const ws=pool.map(w=>weight(w,cur,last));let r=Math.random()*ws.reduce((a,c)=>a+c,0);
+  for(let i=0;i<pool.length;i++){r-=ws[i];if(r<=0)return pool[i];}
+  return pool[0];
+}
+function buildPool(scope,uid){
+  if(scope==='unit')return {pool:UNIT(uid).words,cur:uid};
+  if(scope==='errors'){const p=ALLW.filter(w=>{const s=S.words[w.fr];return s&&s.s>s.c;});return {pool:p,cur:0};}
+  if(scope==='review'){
+    const p=ALLW.filter(w=>{const u=S.units[w.u];return (u&&(u.learned||u.done))||S.words[w.fr];});
+    return {pool:p.length?p:UNIT(1).words,cur:0};
+  }
+  const ru=recUnit()||UNITS[UNITS.length-1];
+  return {pool:ALLW.filter(w=>w.u<=ru.id),cur:ru.id};
+}
+function mkGen(pool,cur,mode){
+  const types=MODES[mode],lastW=[];let lastT='';
+  return ()=>{
+    const w=pickWord(pool,cur,lastW);lastW.push(w.fr);if(lastW.length>3)lastW.shift();
+    let t=rnd(types);if(types.length>1&&t===lastT)t=rnd(types.filter(x=>x!==lastT));lastT=t;
+    return t==='cross'?(mkCross(pool)||mkEx('order',w)):mkEx(t,w);
+  };
+}
+
+/* test blanc A1 */
+function Q(part,say,text,qfr,qtr,opts,ans){
+  return {kind:'mcq',part,say,head:part==='oral'?b('Compréhension orale','Sözlü anlama'):b('Compréhension écrite','Yazılı anlama'),
+    prompt:(text?'<div class="text">'+esc(text)+'</div>':'')+'<div class="qq">'+esc(qfr)+'</div>',
+    opts:opts.map((o,i)=>({html:esc(o),ok:i===ans})),info:{correct:'<i>'+esc(opts[ans])+'</i>',say:say||text}};
+}
+function testA1(){
+  return [
+    Q('oral',"Bonjour, je m'appelle Marie. J'habite à Lyon.",'',"Comment s'appelle la femme ?","Kadının adı ne?",['Marie','Lyon','Aslı','Sophie'],0),
+    Q('oral',"Un café et un thé, s'il vous plaît.",'',"Qu'est-ce que la personne voudrait ?","Kişi ne istiyor?",['Un café et un thé','Du pain et du lait','De l\'eau','Une pomme'],0),
+    Q('oral',"La pharmacie est à gauche, après la boulangerie.",'',"Où est la pharmacie ?","Eczane nerede?",['À gauche','À droite','Tout droit','À la gare'],0),
+    Q('oral',"J'ai quarante ans et deux enfants.",'',"Combien d'enfants a la personne ?","Kişinin kaç çocuğu var?",['Un','Deux','Trois','Quatre'],1),
+    Q('ecrit',null,"Salut ! Je m'appelle Karim. J'ai vingt ans. J'habite à Paris avec ma famille.","Où habite Karim ?","Karim nerede yaşıyor?",['À Paris','À Lyon','En Turquie','À Marseille'],0),
+    Q('ecrit',null,"Aujourd'hui, c'est samedi. Je suis à la maison. Il y a du pain et du fromage dans la cuisine.","Où est la personne ?","Kişi nerede?",['À la maison','À la gare','À la mairie','À l\'hôpital'],0),
+    Q('ecrit',null,"Pardon, où est la gare ? Allez tout droit, puis à droite.","Pour aller à la gare, il faut…","Tren garına gitmek için …",['aller tout droit, puis à droite','aller à gauche','aller à la pharmacie','prendre le bus'],0),
+    Q('ecrit',null,"Je voudrais des pommes, s'il vous plaît. Voilà, ça fait trois euros.","Combien coûtent les pommes ?","Elmalar ne kadar?",['3 euros','13 euros','30 euros','2 euros'],0),
+    {kind:'write',part:'expr',target:"Bonjour, je suis turque.",say:"Bonjour, je suis turque.",head:b('Expression : dictée','İfade: dikte'),prompt:'',info:{correct:'',say:"Bonjour, je suis turque."}},
+    {kind:'write',part:'expr',target:"Où est la gare, s'il vous plaît ?",say:"Où est la gare, s'il vous plaît ?",head:b('Expression : dictée','İfade: dikte'),prompt:'',info:{correct:'',say:"Où est la gare, s'il vous plaît ?"}},
+    {kind:'order',part:'expr',target:"Je voudrais un café, s'il vous plaît.",head:b('Expression : remets dans l\'ordre','İfade: sıraya diz'),prompt:'<div class="big">Bir kahve istiyorum, lütfen.</div>',info:{correct:'',say:"Je voudrais un café, s'il vous plaît."}},
+    {kind:'order',part:'expr',target:"Nous sommes à la maison.",head:b('Expression : remets dans l\'ordre','İfade: sıraya diz'),prompt:'<div class="big">Biz evdeyiz.</div>',info:{correct:'',say:"Nous sommes à la maison."}}
+  ];
+}
+
+/* ───────── Moteur de séance ───────── */
+let R=null,learning=false,view={name:'home'};
+const app=$('#app');
+
+function startRun(cfg){
+  R=Object.assign({n:0,ok:0,xp:0,sec:0,over:false,paused:false,answered:false,words:new Set(),hist:[],pos:-1},cfg);
+  learning=true;nextQ();
+}
+function nextQ(){
+  if(!R)return;
+  if(R.minutes&&R.over)return endRun();
+  const ex=R.gen(R);if(!ex)return endRun();
+  R.hist.push(ex);R.pos=R.hist.length-1;showEx();
+}
+function showEx(){R.cur=R.hist[R.pos];R.answered=!!R.cur.done;view={name:'run'};render();}
+function restoreEx(ex){
+  $$('#exbody button:not(.spk),#exbody input:not(.cx)').forEach(x=>{x.disabled=true;});
+  if(ex.kind==='mcq'&&ex.opts)$$('.opt').forEach((o,k)=>{if(ex.opts[k].ok)o.classList.add('ok');else if(ex.picked===k)o.classList.add('no');});
+  const inp=$('#ans');if(inp&&ex.val!=null)inp.value=ex.val;
+  $('#fb').innerHTML=ex.fb||'';
+}
+function renderRunView(){
+  const ex=R.cur;
+  const partLbl={oral:b('Partie 1 · Oral','Bölüm 1 · Sözlü'),ecrit:b('Partie 2 · Écrit','Bölüm 2 · Yazılı'),expr:b('Partie 3 · Expression','Bölüm 3 · İfade')};
+  app.innerHTML='<div class="runbar"><button class="mini" data-act="quit" aria-label="Quitter">'+icon('x','currentColor',24)+'</button><div class="timer" id="tm"></div>'+
+    (R.minutes?'<button class="mini" data-act="pause" aria-label="Pause">'+icon('pause','currentColor',24)+'</button>':'<span style="width:52px"></span>')+'</div>'+
+    '<div class="prog px"><i id="pg"></i></div>'+
+    (ex.part?'<div class="part">'+partLbl[ex.part]+'</div>':'')+
+    '<div id="over" class="over" hidden>'+b("Temps écoulé : dernière question !","Süre doldu: son soru!")+'</div>'+
+    '<div class="card px" id="exbody"></div><div id="fb"></div>'+
+    '<div class="row navrow">'+(R.pos>0?'<button class="btn ghost" data-act="prev">&larr; '+b('Précédent','Önceki')+'</button>':'')+(!ex.done?'<button class="btn ghost" data-act="next">'+b('Passer','Geç')+' &rarr;</button>':'')+'</div>';
+  EXR[ex.kind](ex,$('#exbody'));
+  if(ex.done)restoreEx(ex);
+  updateTimer();
+}
+function updateTimer(){
+  if(!R)return;const tm=$('#tm');if(!tm)return;const pg=$('#pg');
+  if(R.minutes){
+    const left=Math.max(0,R.minutes*60-R.sec);tm.textContent=pad(Math.floor(left/60))+':'+pad(left%60);
+    if(pg)pg.style.width=Math.min(100,R.sec/(R.minutes*60)*100)+'%';
+    const ov=$('#over');if(ov)ov.hidden=!R.over;
+  }else{
+    tm.textContent=Math.min(R.n+1,R.count)+'/'+R.count;if(pg)pg.style.width=(R.n/R.count*100)+'%';
+  }
+}
+setInterval(()=>{
+  if(!learning||document.hidden||(R&&R.paused))return;
+  const d=day();d.sec++;
+  if(R){R.sec++;if(R.minutes&&R.sec>=R.minutes*60&&!R.over){R.over=true;sfx.click();}updateTimer();}
+  save();
+},1000);
+
+function finish(ok,partial){
+  if(!R||R.answered)return;R.answered=true;R.n++;if(ok)R.ok++;
+  const ex=R.cur,pts=ok?(partial?3:5):0;
+  const d=day();d.ex=(d.ex||0)+1;if(ok)d.ok=(d.ok||0)+1;d.xp=(d.xp||0)+pts;S.xp+=pts;R.xp+=pts;
+  if(ex.w){const s=S.words[ex.w.fr]||(S.words[ex.w.fr]={s:0,c:0});s.s++;if(ok)s.c++;R.words.add(ex.w.fr);}
+  save();ok?sfx.ok():sfx.bad();if(ok&&Math.random()<.25)confetti(14);
+  const hd=ok?rnd(PRAISE):(ex.oops||rnd(OOPS));ex.done=true;
+  const info=ex.info||{};
+  let corr=info.correct||'';
+  if(ex.kind==='write'||ex.kind==='order'||ex.kind==='repeat'){corr='<i>'+esc(ex.target)+'</i><br>'+corr;}
+  if(!R.minutes&&R.n>=R.count)R.finalQ=true;
+  const last=R.minutes?false:R.n>=R.count;
+  ex.fb=$('#fb').innerHTML='<div class="fb px '+(ok?'good':'bad')+'"><div class="fbh">'+b(hd[0],hd[1])+(pts?' +'+pts+' XP':'')+'</div>'+
+    '<div class="fbc">'+(partial?'<div>'+b('Attention aux accents !','Aksanlara dikkat!')+'</div>':'')+corr+'</div>'+
+    (info.say?'<div class="listen">'+spk(info.say)+'</div>':'')+
+    '<button class="btn '+(ok?'green':'red')+'" data-act="next" id="nextbtn">'+(last?b('Voir le résultat','Sonucu gör'):b('Continuer','Devam'))+'</button></div>';
+  const fb=$('#fb');if(fb.scrollIntoView)fb.scrollIntoView({block:'nearest',behavior:'smooth'});
+  updateTimer();
+}
+function endRun(){
+  learning=false;try{speechSynthesis.cancel();}catch(e){}
+  const res={n:R.n,ok:R.ok,xp:R.xp,sec:R.sec,words:R.words.size,title:R.title,kind:R.kind};
+  let extra='';if(R.onFinish&&R.n>0)extra=R.onFinish(res)||'';
+  const back=R.back||'home',uid=R.unitId;R=null;save(true);
+  view={name:'summary',res,extra,back,uid};render();
+  if(res.n>0){sfx.win();confetti(50);}
+}
+
+/* rendus des exercices */
+const EXR={};
+EXR.mcq=(ex,el)=>{
+  el.innerHTML='<div class="qh">'+ex.head+'</div>'+(ex.say?'<div class="listen">'+spk(ex.say)+'</div>':'')+(ex.prompt||'')+
+    '<div class="opts">'+ex.opts.map((o,i)=>'<button class="opt" data-act="pick" data-i="'+i+'">'+o.html+'</button>').join('')+'</div>';
+  if(ex.say&&!ex.noauto)setTimeout(()=>{if(R&&R.cur===ex&&!R.answered)speak(ex.say);},350);
+};
+EXR.write=(ex,el)=>{
+  const keys='é è ê ë à â ù û ô î ï ç œ ’'.split(' ').map(c=>'<button class="key" data-act="key" data-c="'+c+'" tabindex="-1">'+c+'</button>').join('');
+  el.innerHTML='<div class="qh">'+ex.head+'</div>'+(ex.say?'<div class="listen">'+spk(ex.say)+'</div>':'')+(ex.prompt||'')+
+    '<input id="ans" class="inp" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-label="Réponse">'+
+    '<div class="acc">'+keys+'</div><button class="btn blue" data-act="check">'+b('Vérifier','Kontrol et')+'</button>';
+  const inp=$('#ans');inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();A.check();}});
+  if(ex.say)setTimeout(()=>{if(R&&R.cur===ex&&!R.answered)speak(ex.say);},350);
+};
+EXR.order=(ex,el)=>{
+  if(!ex.tiles){
+    ex.tiles=shuffle(toks(ex.target).map((t,i)=>({t,i})));
+    if(ex.tiles.length>1&&ex.tiles.every((x,i)=>x.i===i))ex.tiles.reverse();
+    ex.placed=[];
+  }
+  el.innerHTML='<div class="qh">'+ex.head+'</div>'+(ex.prompt||'')+'<div class="zone ans" id="zans" aria-label="Ta phrase"></div><div class="zone" id="zbank" aria-label="Mots"></div>'+
+    '<button class="btn blue" data-act="checkorder">'+b('Vérifier','Kontrol et')+'</button>';
+  drawOrder(ex);
+};
+function drawOrder(ex){
+  const mk=(arr,act)=>arr.map(i=>'<button class="tile2" data-act="'+act+'" data-i="'+i+'">'+esc(ex.tiles.find(x=>x.i===i).t)+'</button>').join('');
+  const bank=ex.tiles.map(x=>x.i).filter(i=>!ex.placed.includes(i));
+  $('#zans').innerHTML=mk(ex.placed,'unplace');$('#zbank').innerHTML=mk(bank,'place');
+}
+EXR.repeat=(ex,el)=>{
+  ex.oops=["À répéter !","Tekrar et!"];
+  el.innerHTML='<div class="qh">'+b('Écoute, puis répète à voix haute','Dinle, sonra yüksek sesle tekrar et')+'</div><div class="big">'+esc(ex.target)+'</div>'+
+    '<div class="listen">'+spk(ex.target)+'</div>'+
+    '<button class="btn blue" data-act="mic">'+icon('mic','currentColor',22)+' '+b('Parler','Konuş')+'</button>'+
+    '<div id="pron"></div>'+
+    '<div class="listen"><button class="spk slow" data-act="showself">'+b('Le micro ne marche pas ?','Mikrofon çalışmıyor mu?')+'</button></div>'+
+    '<div id="selfbox" hidden><div class="qh">'+b("Répète à voix haute, puis choisis :","Yüksek sesle tekrar et, sonra seç:")+'</div>'+
+    '<div class="row"><button class="btn green" data-act="self" data-v="1">'+b("Je l'ai bien dit","İyi söyledim")+'</button><button class="btn ghost" data-act="self" data-v="0">'+b('À répéter','Tekrar et')+'</button></div></div>';
+  setTimeout(()=>{if(R&&R.cur===ex&&!R.answered)speak(ex.target);},350);
+};
+
+
+const A={};
+/* ───────── Mots croisés audio ───────── */
+const cw=t=>norm(t).replace(/[^a-z]/g,'');
+function crossLayout(words){
+  const g=new Map(),pl=[],K=(r,c)=>r+','+c;
+  const cells=(w,r,c,d)=>[...w.k].map((ch,i)=>({ch,r:r+(d?i:0),c:c+(d?0:i)}));
+  const can=(w,r,c,d)=>{
+    if(g.has(K(r-(d?1:0),c-(d?0:1))))return false;
+    if(g.has(K(r+(d?w.k.length:0),c+(d?0:w.k.length))))return false;
+    let cross=0;
+    for(const x of cells(w,r,c,d)){
+      const e=g.get(K(x.r,x.c));
+      if(e){if(e!==x.ch)return false;cross++;}
+      else if(d?(g.has(K(x.r,x.c-1))||g.has(K(x.r,x.c+1))):(g.has(K(x.r-1,x.c))||g.has(K(x.r+1,x.c))))return false;
+    }
+    return cross===1;
+  };
+  const add=(w,r,c,d)=>{cells(w,r,c,d).forEach(x=>g.set(K(x.r,x.c),x.ch));pl.push({w,r,c,d});};
+  add(words[0],0,0,0);
+  for(const w of words.slice(1)){
+    let done=false;
+    for(const q of shuffle(pl)){
+      if(done)break;
+      for(let i=0;i<w.k.length&&!done;i++)for(let j=0;j<q.w.k.length&&!done;j++){
+        if(w.k[i]!==q.w.k[j])continue;
+        const d=q.d?0:1,r=d?q.r-i:q.r+j,c=d?q.c+j:q.c-i;
+        if(can(w,r,c,d)){add(w,r,c,d);done=true;}
+      }
+    }
+  }
+  if(pl.length<4)return null;
+  const rs=pl.map(x=>x.r),cs=pl.map(x=>x.c);const r0=Math.min(...rs),c0=Math.min(...cs);
+  const o=pl.map(x=>({w:x.w,r:x.r-r0,c:x.c-c0,d:x.d}));
+  const gg={};let H=0,W=0;
+  o.forEach(x=>cells(x.w,x.r,x.c,x.d).forEach(y=>{gg[y.r+','+y.c]=y.ch;H=Math.max(H,y.r+1);W=Math.max(W,y.c+1);}));
+  if(W>10||H>10)return null;
+  o.sort((a,b)=>a.r-b.r||a.c-b.c);
+  return {words:o,g:gg,w:W,h:H};
+}
+function mkCross(pool){
+  const seen=new Set(),cand=[];
+  pool.forEach(w=>{const k=cw(w.fr);if(k.length>=3&&k.length<=8&&!/[\s'…\/()]/.test(w.fr)&&!seen.has(k)){seen.add(k);cand.push({fr:w.fr,k});}});
+  if(cand.length<4)return null;
+  for(let a=0;a<40;a++){
+    const ws=shuffle(cand).slice(0,6).sort((x,y)=>y.k.length-x.k.length);
+    const L=crossLayout(ws);
+    if(L)return {kind:'cross',L,head:b('Mots croisés : écoute et écris','Bulmaca: dinle ve yaz'),info:{correct:L.words.map(x=>'<b>'+esc(x.w.fr)+'</b>').join(' · ')}};
+  }
+  return null;
+}
+EXR.cross=(ex,el)=>{
+  const L=ex.L,num=new Map();
+  L.words.forEach((q,i)=>{const k=q.r+','+q.c;if(!num.has(k))num.set(k,i+1);});
+  let cells='';
+  for(let r=0;r<L.h;r++)for(let c=0;c<L.w;c++){
+    const k=r+','+c;
+    if(!L.g[k]){cells+='<div class="xc"></div>';continue;}
+    cells+='<div class="xc">'+(num.get(k)?'<i>'+num.get(k)+'</i>':'')+'<input class="cx '+(ex.marks?(ex.marks[k]?'ok':'no'):'')+'" data-k="'+k+'" maxlength="1" value="'+esc((ex.vals&&ex.vals[k])||'')+'" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="'+(num.get(k)||'')+'"'+(ex.done?' disabled':'')+'></div>';
+  }
+  el.innerHTML='<div class="qh">'+ex.head+'</div><div class="xg" style="grid-template-columns:repeat('+L.w+',34px)">'+cells+'</div>'+
+    L.words.map((q,i)=>'<div class="xclue"><button class="key" data-act="xfocus" data-i="'+i+'">'+(i+1)+' '+(q.d?'&darr;':'&rarr;')+'</button>'+spk(q.w.fr)+'<small>('+q.w.k.length+')</small></div>').join('')+
+    '<button class="btn blue" data-act="xcheck">'+b('Vérifier','Kontrol et')+'</button>';
+};
+A.xcheck=()=>{
+  const ex=R&&R.cur;if(!ex||R.answered)return;
+  const vals={},marks={};let all=true;
+  $$('.cx').forEach(i=>{const k=i.dataset.k,v=i.value.trim(),ok=norm(v)===ex.L.g[k];vals[k]=v;marks[k]=ok;if(!ok)all=false;i.disabled=true;i.classList.add(ok?'ok':'no');});
+  ex.vals=vals;ex.marks=marks;finish(all);
+};
+const cxCell=k=>document.querySelector('.cx[data-k="'+k+'"]');
+const cxWords=(L,k)=>{const [r,c]=k.split(',').map(Number);return L.words.filter(q=>q.d?(q.c===c&&r>=q.r&&r<q.r+q.w.k.length):(q.r===r&&c>=q.c&&c<q.c+q.w.k.length));};
+function cxStep(t,dv){
+  const ex=R&&R.cur;if(!ex||!ex.L)return;
+  const [r,c]=t.dataset.k.split(',').map(Number),d=ex.dir||0;
+  const nk=(r+(d?dv:0))+','+(c+(d?0:dv));
+  if(ex.L.g[nk]){const n=cxCell(nk);if(n)n.focus();}
+}
+app.addEventListener('focusin',e=>{
+  const t=e.target;if(!(t.classList&&t.classList.contains('cx'))||!R||!R.cur||!R.cur.L)return;
+  const ex=R.cur,ws=cxWords(ex.L,t.dataset.k);
+  if(ws.length&&!ws.some(q=>(q.d?1:0)===(ex.dir||0)))ex.dir=ws[0].d?1:0;
+  try{t.select();}catch(_){}
+});
+app.addEventListener('input',e=>{const t=e.target;if(t.classList&&t.classList.contains('cx')&&t.value)cxStep(t,1);});
+app.addEventListener('keydown',e=>{
+  const t=e.target;if(!(t.classList&&t.classList.contains('cx')))return;
+  if(e.key==='Backspace'&&!t.value){e.preventDefault();cxStep(t,-1);}
+});
+A.xfocus=t=>{const ex=R&&R.cur;if(!ex||!ex.L)return;const q=ex.L.words[+t.dataset.i];ex.dir=q.d?1:0;const n=cxCell(q.r+','+q.c);if(n)n.focus();};
+
+
+/* ───────── Micro : demandé seulement quand c'est utile ───────── */
+let micCb=null;
+function askMic(cb){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){S.mic='off';save(true);toast(b("Le micro n'est pas disponible ici.","Mikrofon burada kullanılamıyor."));return cb(false);}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(st=>{st.getTracks().forEach(t=>t.stop());S.mic='on';save(true);cb(true);})
+   .catch(()=>{S.mic='off';save(true);toast(b("Micro refusé ou bloqué ici.","Mikrofon reddedildi veya burada engelli."));cb(false);});
+}
+function ensureMic(cb){
+  if(S.mic==='on')return cb(true);
+  micCb=cb;
+  showOverlay('<div class="h1">'+b('Activer le micro ?','Mikrofon açılsın mı?')+'</div><p>'+b("Le micro sert seulement à t'écouter répéter un mot. Rien n'est enregistré.","Mikrofon yalnızca bir kelimeyi tekrar ederken seni dinlemek için kullanılır. Hiçbir şey kaydedilmez.")+'</p>'+
+   '<button class="btn green" data-act="micok">'+b('Autoriser','İzin ver')+'</button><button class="btn ghost" data-act="micno">'+b('Pas maintenant','Şimdi değil')+'</button>');
+}
+A.micok=()=>{closeOverlay();const cb=micCb;micCb=null;askMic(ok=>{if(cb)cb(ok);render();});};
+A.micno=()=>{closeOverlay();const cb=micCb;micCb=null;S.micAsked=true;save(true);if(cb)cb(false);else render();};
+A.homemic=()=>{ensureMic(()=>{});};
+A.tmic=()=>{if(S.mic==='on'){S.mic='off';save(true);render();}else askMic(()=>render());};
+
+
+
+/* ───────── Sauvegarde sans compte : partage / fichier / rappel ───────── */
+const bkDue=()=>cloudSt!=='ok'&&S.xp>0&&(Date.now()-(S.bk||0)>3*864e5);
+A.share=async()=>{
+  const code=enc(S);
+  try{if(navigator.share){await navigator.share({title:"Sauvegarde · Le Jardin d'Aslı",text:code});S.bk=Date.now();save(true);toast(b('Sauvegarde envoyée !','Yedek gönderildi!'));render();return;}}
+  catch(e){if(e&&e.name==='AbortError')return;}
+  try{await navigator.clipboard.writeText(code);S.bk=Date.now();save(true);toast(b('Code copié ! Colle-le dans une note ou un message à toi-même.','Kod kopyalandı! Bir nota veya kendine mesaj olarak yapıştır.'));render();}
+  catch(e){go('settings',{code});}
+};
+A.dlbk=async()=>{
+  let dl=null;try{dl=await window.claude.use('downloads');}catch(e){}
+  if(!dl){go('settings',{code:enc(S)});return;}
+  try{await dl.save({filename:'sauvegarde-jardin-asli.txt',data:enc(S)});S.bk=Date.now();save(true);render();}catch(e){}
+};
+
+/* ───────── Ambiance sonore douce + sauvegarde auto ───────── */
+const PENTA=[261.6,293.7,329.6,392,440,523.3,392,329.6];
+function ambPlay(){
+  if(!S.amb||!S.sound||document.hidden||!AC)return;
+  try{
+    if(AC.state==='suspended'){AC.resume();return;}
+    const t0=AC.currentTime,f=rnd(PENTA);
+    [[f,.016],[f*2,.006]].forEach(([fq,v])=>{
+      const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=fq;o.connect(g);g.connect(AC.destination);
+      g.gain.setValueAtTime(.0001,t0);g.gain.linearRampToValueAtTime(v,t0+1.4);g.gain.exponentialRampToValueAtTime(.0001,t0+5);
+      o.start(t0);o.stop(t0+5.1);
+    });
+  }catch(e){}
+}
+setInterval(ambPlay,2800);
+setInterval(()=>save(true),45000);
+A.tamb=()=>{S.amb=!S.amb;save(true);if(S.amb){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();}catch(e){}ambPlay();}render();};
+
+/* ───────── Actions ───────── */
+A.say=t=>speak(t.dataset.t,false);
+A.sayslow=t=>speak(t.dataset.t,true);
+A.pick=t=>{
+  if(!R||R.answered)return;const ex=R.cur,i=+t.dataset.i;
+  $$('.opt').forEach((o,k)=>{o.disabled=true;if(ex.opts[k].ok)o.classList.add('ok');});
+  if(!ex.opts[i].ok)t.classList.add('no');
+  ex.picked=i;
+  finish(ex.opts[i].ok);
+};
+A.key=t=>{const inp=$('#ans');if(!inp)return;const s=inp.selectionStart==null?inp.value.length:inp.selectionStart,e=inp.selectionEnd==null?s:inp.selectionEnd;inp.setRangeText(t.dataset.c,s,e,'end');inp.focus();};
+A.check=()=>{
+  if(!R||R.answered)return;const inp=$('#ans');if(!inp)return;const v=inp.value.trim();
+  if(!v){inp.focus();return;}
+  const ex=R.cur;inp.disabled=true;ex.val=v;
+  const ut=v.split(/\s+/),tt=ex.target.split(/\s+/);
+  const full=strip(v)===strip(ex.target),loose=norm(v)===norm(ex.target);
+  const diff=ut.map((w,i)=>{const t=tt[i]||'';const c=strip(w)===strip(t)?'g':norm(w)===norm(t)?'w':'r';return '<span class="'+c+'">'+esc(w)+'</span>';}).join('');
+  ex.info=Object.assign({},ex.info,{correct:(full?'':'<div class="diff">'+diff+'</div>')+(ex.info.correct||'')});
+  finish(full||loose,!full&&loose);
+};
+A.place=t=>{const ex=R&&R.cur;if(!ex||R.answered)return;ex.placed.push(+t.dataset.i);drawOrder(ex);sfx.click();};
+A.unplace=t=>{const ex=R&&R.cur;if(!ex||R.answered)return;ex.placed=ex.placed.filter(i=>i!==+t.dataset.i);drawOrder(ex);};
+A.checkorder=()=>{
+  const ex=R&&R.cur;if(!ex||R.answered)return;
+  if(ex.placed.length<ex.tiles.length){toast(b("Place tous les mots d'abord.","Önce tüm kelimeleri yerleştir."));return;}
+  const ans=ex.placed.map(i=>ex.tiles.find(x=>x.i===i).t).join(' ');
+  $$('#zans .tile2,#zbank .tile2').forEach(x=>x.disabled=true);
+  finish(strip(ans)===strip(ex.target));
+};
+/* reconnaissance vocale : écoute, compare avec le mot attendu */
+function recog(target,cb){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){cb({err:'unsupported'});return;}
+  let done=false;const end=r=>{if(!done){done=true;cb(r);}};
+  try{
+    const r=new SR();r.lang='fr-FR';r.interimResults=false;r.maxAlternatives=4;
+    r.onresult=e=>{
+      const alts=[...e.results[0]].map(a=>a.transcript);const tg=norm(target);let best=0;
+      alts.forEach(a=>{const n=norm(a);best=Math.max(best,1-lev(n,tg)/Math.max(n.length,tg.length,1));});
+      end({ok:best>=0.75,heard:alts[0],score:best});
+    };
+    r.onerror=e=>end({err:(e&&e.error)||'error'});
+    r.onnomatch=()=>end({ok:false,heard:''});
+    r.onend=()=>end({ok:false,heard:''});
+    r.start();
+  }catch(e){end({err:'start'});}
+}
+function pronHtml(res){
+  if(res.err&&res.err!=='no-speech')return '<div class="pron bad"><div class="fbh">'+b('Micro indisponible ici','Mikrofon burada kullanılamıyor')+'</div><div>'+b('Utilise les boutons d’auto-évaluation.','Kendini değerlendirme düğmelerini kullan.')+'</div></div>';
+  if(res.ok)return '<div class="pron good"><div class="fbh">'+b('Bravo !','Bravo!')+'</div><div>'+b('Bonne prononciation.','Telaffuz doğru.')+'</div>'+(res.heard?'<small>'+esc(res.heard)+'</small>':'')+'</div>';
+  return '<div class="pron bad"><div class="fbh">'+b('À répéter · attention','Tekrar et · dikkat')+'</div><div>'+(res.heard?b('J’ai entendu :','Duyduğum:')+' <i>'+esc(res.heard)+'</i>':b('Je n’ai rien entendu.','Bir şey duymadım.'))+'</div></div>';
+}
+A.mic=()=>{
+  const ex=R&&R.cur;if(!ex||R.answered)return;const box=$('#pron');
+  ensureMic(okm=>{
+  if(!okm){const sb=$('#selfbox');if(sb)sb.hidden=false;return;}
+  box.innerHTML='<div class="pron"><div class="fbh">'+b('Je t’écoute…','Seni dinliyorum…')+'</div></div>';
+  recog(ex.target,res=>{
+    if(!R||R.cur!==ex||R.answered)return;
+    if(res.err&&res.err!=='no-speech'){box.innerHTML=pronHtml(res);$('#selfbox').hidden=false;return;}
+    ex.info=Object.assign({},ex.info,{correct:(res.heard?'<div>'+b('Tu as dit :','Söylediğin:')+' <i>'+esc(res.heard)+'</i></div>':'')+(ex.info.correct||'')});
+    finish(!!res.ok);
+  });
+  });
+};
+A.showself=()=>{const s=$('#selfbox');if(s)s.hidden=false;};
+A.lmic=()=>{
+  const u=UNIT(view.id),w=u.words[view.i];if(!$('#pron'))return;
+  const at=view.i;
+  ensureMic(okm=>{
+    const box=$('#pron');if(!box||!okm)return;
+    box.innerHTML='<div class="pron"><div class="fbh">'+b('Je t’écoute…','Seni dinliyorum…')+'</div></div>';
+    recog(w.fr,res=>{const bx=$('#pron');if(!bx||view.name!=='lesson'||view.i!==at){return;}bx.innerHTML=pronHtml(res);if(res.ok)sfx.ok();else if(!res.err)sfx.bad();});
+  });
+};
+A.self=t=>{if(!R||R.answered)return;finish(t.dataset.v==='1');};
+A.next=()=>{if(!R)return;if(R.pos<R.hist.length-1){R.pos++;showEx();}else nextQ();};
+A.prev=()=>{if(R&&R.pos>0){R.pos--;showEx();}};
+A.quit=()=>showOverlay('<div class="h1">'+b('Quitter la séance ?','Dersten çıkılsın mı?')+'</div><p>'+b('Ton temps et tes points sont déjà enregistrés.','Süren ve puanların zaten kaydedildi.')+'</p>'+
+  '<button class="btn red" data-act="quitok">'+b('Oui, quitter','Evet, çık')+'</button><button class="btn ghost" data-act="closeov">'+b('Continuer à apprendre','Öğrenmeye devam')+'</button>');
+A.quitok=()=>{closeOverlay();learning=false;const back=R&&R.back,uid=R&&R.unitId;R=null;save(true);back==='unit'&&uid?go('unit',{id:uid}):go(back||'home');};
+A.closeov=()=>closeOverlay();
+A.pause=()=>{if(!R)return;R.paused=true;showOverlay('<div class="h1">Pause</div><p>'+b('Le temps est arrêté.','Süre durdu.')+'</p><button class="btn green" data-act="resume">'+b('Reprendre','Devam et')+'</button>');};
+A.resume=()=>{if(R)R.paused=false;closeOverlay();};
+
+/* navigation */
+function go(name,p){
+  view=Object.assign({name},p||{});
+  if(name!=='lesson'&&name!=='run'&&name!=='photo')learning=false;
+  try{speechSynthesis.cancel();}catch(e){}
+  render();window.scrollTo(0,0);
+}
+A.go=t=>go(t.dataset.go);
+A.toSetup=()=>go('setup');
+A.setMin=t=>{S.last.min=+t.dataset.v;save();render();};
+A.setMode=t=>{S.last.mode=t.dataset.v;save();render();};
+A.setScope=t=>{S.last.scope=t.dataset.v;save();render();};
+A.quick=t=>{S.last.min=+t.dataset.v;save();A.start();};
+A.start=()=>{
+  const {min,mode,scope}=S.last;const bp=buildPool(scope);
+  if(!bp.pool.length){toast(b("Aucune erreur à revoir pour l'instant. Bravo !","Şu an tekrar edilecek hata yok. Aferin!"));return;}
+  startRun({kind:'session',title:b('Séance','Ders'),minutes:min,gen:mkGen(bp.pool,bp.cur,mode),back:'home'});
+};
+A.openUnit=t=>go('unit',{id:+t.dataset.id});
+A.lesson=t=>{learning=true;go('lesson',{id:+t.dataset.id,i:0});};
+A.lprev=()=>{if(view.i>0){view.i--;render();}};
+A.lnext=()=>{const u=UNIT(view.id);if(view.i<u.words.length-1){view.i++;render();}};
+A.lend=()=>{
+  const st=S.units[view.id]||(S.units[view.id]={});
+  if(!st.learned){st.learned=true;S.xp+=30;day().xp=(day().xp||0)+30;toast(b('Leçon terminée ! +30 XP','Ders bitti! +30 XP'));}
+  save(true);sfx.win();confetti(30);go('unit',{id:view.id});
+};
+A.practice=t=>{
+  const id=+t.dataset.id;const u=UNIT(id);
+  const early=ALLW.filter(w=>w.u<id);const pool=u.words.concat(early.slice(-12));
+  const g=mkGen(pool,id,'mix');
+  startRun({kind:'practice',title:u.fr,count:10,gen:()=>R.n>=R.count?null:g(),back:'unit',unitId:id});
+};
+A.utest=t=>{
+  const id=+t.dataset.id;const u=UNIT(id);
+  const g=mkGen(u.words,id,'quiz'),g2=mkGen(u.words,id,'ecrit');let i=0;
+  startRun({kind:'utest',title:u.fr,count:8,back:'unit',unitId:id,gen:()=>R.n>=R.count?null:(i++%2?g2():g()),
+    onFinish:(res)=>{
+      const st=S.units[id]||(S.units[id]={});const first=!st.done;st.testBest=Math.max(st.testBest||0,res.ok);st.tests=(st.tests||0)+1;
+      let m='';
+      if(res.ok>=6){st.done=true;if(first){S.xp+=50;m='<div class="msg">'+b('Mini-test réussi ! +50 XP','Mini test başarılı! +50 XP')+'</div>';}else m='<div class="msg">'+b('Mini-test réussi !','Mini test başarılı!')+'</div>';}
+      else m='<div class="msg">'+b('Il faut 6 bonnes réponses sur 8. Refais la leçon et réessaie !','8 sorudan 6 doğru gerekiyor. Dersi tekrar et ve yeniden dene!')+'</div>';
+      return m;
+    }});
+};
+A.startTest=()=>{
+  const qs=testA1();let i=0;
+  startRun({kind:'test',title:b('Test blanc A1','A1 deneme sınavı'),count:qs.length,back:'path',gen:()=>i<qs.length?qs[i++]:null,
+    onFinish:(res)=>{
+      S.tests.push({d:todayK(),ok:res.ok,n:res.n,lvl:'A1'});
+      const pc=Math.round(res.ok/Math.max(1,res.n)*100);
+      return '<div class="msg">'+(pc>=60?b('Réussi ! Tu es prête pour le niveau A1.','Başardın! A1 seviyesine hazırsın.'):b('Pas encore 60 %. Continue de réviser, tu y es presque !','Henüz %60 değil. Çalışmaya devam et, çok yaklaştın!'))+'</div>';
+    }});
+};
+A.lvl=t=>{view.lvl=t.dataset.v;render();};
+A.review=()=>{S.last.scope='review';save();go('setup');};
+A.selday=t=>{view.sel=t.dataset.k;render();};
+A.mprev=()=>{view.m--;if(view.m<0){view.m=11;view.y--;}view.sel=null;render();};
+A.mnext=()=>{view.m++;if(view.m>11){view.m=0;view.y++;}view.sel=null;render();};
+A.open=t=>{
+  const g=GIFTS.find(x=>x.id===t.dataset.id);if(!g||S.gifts[g.id]||!giftReady(g))return;
+  S.gifts[g.id]=todayK();S.xp+=60;save(true);sfx.win();
+  showOverlay('<div class="reveal" style="text-align:center"><div class="box"><div class="b1"></div><div class="b2"></div><div class="rb"></div></div><canvas id="gc"></canvas>'+
+    '<div class="h1">'+esc(g.n)+'<br><small style="font-family:var(--f-body);font-size:24px;color:var(--dim)">'+esc(g.nt)+'</small></div>'+
+    '<div class="msg">'+esc(g.fr)+'<small>'+esc(g.tr)+'</small></div><p>+60 XP</p></div>'+
+    '<button class="btn green" data-act="gclose">'+b('Merci !','Teşekkürler!')+'</button>');
+  drawFlower($('#gc'),g.color,4);setTimeout(()=>confetti(60),1300);
+};
+A.gclose=()=>{closeOverlay();render();};
+A.tsound=()=>{S.sound=!S.sound;save(true);render();if(S.sound){sfx.ok();ambPlay();}};
+A.tslow=()=>{S.slow=!S.slow;save(true);render();};
+A.copy=()=>{const ta=$('#bk');ta.select();(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(ta.value):Promise.reject()).then(()=>toast(b('Code copié !','Kod kopyalandı!'))).catch(()=>toast(b('Sélectionné : copie-le à la main.','Seçildi: elle kopyala.')));};
+A.exp=()=>{view.code=enc(S);render();};
+A.imp=()=>{
+  const v=($('#imp').value||'').trim();if(!v)return;
+  try{const o=dec(v);if(!o||typeof o!=='object'||!o.days)throw 0;S=Object.assign(JSON.parse(JSON.stringify(DEF)),o);save(true);toast(b('Progression importée !','İlerleme yüklendi!'));view.code='';render();}
+  catch(e){toast(b('Code invalide.','Geçersiz kod.'));}
+};
+A.reset=()=>showOverlay('<div class="h1">'+b('Tout effacer ?','Her şey silinsin mi?')+'</div><p>'+b('La progression, les cadeaux et le calendrier seront perdus.','İlerleme, hediyeler ve takvim silinecek.')+'</p>'+
+  '<button class="btn red" data-act="resetok">'+b('Oui, tout effacer','Evet, hepsini sil')+'</button><button class="btn ghost" data-act="closeov">'+b('Annuler','Vazgeç')+'</button>');
+A.resetok=()=>{S=JSON.parse(JSON.stringify(DEF));save(true);closeOverlay();go('home');};
+
+app.addEventListener('click',e=>{const t=e.target.closest('[data-act],[data-go]');if(!t||t.disabled)return;if(t.dataset.act){const f=A[t.dataset.act];if(f){f(t,e);}}else if(t.dataset.go){sfx.click();go(t.dataset.go);}});
+$('#overlay').addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t)return;const f=A[t.dataset.act];if(f)f(t,e);});
+$('#nav').addEventListener('click',e=>{const t=e.target.closest('[data-go]');if(t){sfx.click();go(t.dataset.go);}});
+app.addEventListener('change',e=>{
+  if(e.target.id==='nm'){S.name=e.target.value.trim()||'Aslı';save(true);}
+  if(e.target.id==='goal'){S.goalMin=+e.target.value;save(true);}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&R&&R.answered&&document.activeElement&&document.activeElement.id!=='nextbtn'){const nb=$('#nextbtn');if(nb){e.preventDefault();A.next();}}});
+
+/* ───────── Écrans ───────── */
+const MONTHS=[["Janvier","Ocak"],["Février","Şubat"],["Mars","Mart"],["Avril","Nisan"],["Mai","Mayıs"],["Juin","Haziran"],["Juillet","Temmuz"],["Août","Ağustos"],["Septembre","Eylül"],["Octobre","Ekim"],["Novembre","Kasım"],["Décembre","Aralık"]];
+const DAYS_FR=["Lu","Ma","Me","Je","Ve","Sa","Di"];
+const MODE_L={mix:b('Mélange','Karışık'),jeux:b('Jeux','Oyunlar'),oral:b('Oral','Sözlü'),ecrit:b('Écrit','Yazılı'),quiz:b('Quiz','Quiz')};
+const SCOPE_L={path:b('Suite du parcours','Yolun devamı'),review:b('Révision','Tekrar'),errors:b('Mes erreurs','Hatalarım')};
+
+function vHome(){
+  const st=streaks(),d=S.days[todayK()]||{sec:0};
+  const pct=Math.min(100,Math.round(d.sec/(S.goalMin*60)*100));
+  const lv=Math.floor(S.xp/150)+1,into=S.xp%150,u=recUnit();
+  const tot=totalSec();
+  return '<div class="h1">'+b('Bonjour '+esc(S.name)+' ! 👋','Merhaba '+esc(S.name)+'!')+'</div><div class="sub">'+b('Prête pour un peu de français ?','Biraz Fransızcaya hazır mısın?')+'</div>'+
+  '<div class="bella"><canvas id="bella" aria-label="Bella"></canvas><div class="bubble">'+(()=>{const m=BELLA_SAY[Math.floor(Date.now()/36e5)%BELLA_SAY.length];return b(m[0],m[1]);})()+'</div></div>'+
+  '<div class="garden px"><i class="sun"></i><i class="cloud c1"></i><i class="cloud c2"></i><div class="beds" id="beds"></div><div class="grass"></div></div>'+
+  '<div class="xp px"><span class="lv">NIV '+lv+'</span><div class="bar"><i style="width:'+(into/150*100)+'%"></i></div><span class="xpn">'+S.xp+' XP</span></div>'+
+  '<div class="tiles">'+
+    '<div class="tile px">'+icon('flame','var(--red)',30)+'<b>'+st.cur+'</b><span>'+b('jours de suite','gün üst üste')+'</span></div>'+
+    '<div class="tile px">'+icon('clock','var(--blue)',30)+'<b>'+Math.floor(d.sec/60)+'</b><span>'+b("min aujourd'hui",'dk bugün')+'</span></div>'+
+    '<div class="tile px">'+icon('star','var(--gold)',30)+'<b>'+(tot<3600?Math.floor(tot/60)+"'":Math.floor(tot/3600)+'h')+'</b><span>'+b('au total','toplam')+'</span></div>'+
+  '</div>'+
+  '<div class="panel px"><div class="qh">'+b('Objectif du jour : '+S.goalMin+' min','Günün hedefi: '+S.goalMin+' dk')+'</div><div class="bar"><i style="width:'+pct+'%"></i></div></div>'+
+  '<button class="btn red" data-act="toSetup">'+b('🌱 Commencer une séance','Derse başla')+'</button>'+
+  '<div class="chips">'+[5,10,15,20].map(m=>'<button class="chip" data-act="quick" data-v="'+m+'">'+m+' min</button>').join('')+'</div>'+
+  (u?'<div class="panel px"><div class="qh">'+b('Prochaine étape','Sıradaki adım')+'</div><div class="emo">'+(UEMO[u.id]||'')+'</div><div class="h1" style="font-size:12px">'+b(u.id+'. '+esc(u.fr),esc(u.tr))+'</div><button class="btn blue" data-act="openUnit" data-id="'+u.id+'">'+b('Ouvrir la leçon','Derse git')+'</button></div>'
+   :'<div class="panel px"><div class="h1" style="font-size:12px">'+b('Parcours A1 terminé !','A1 yolu bitti!')+'</div><button class="btn blue" data-act="startTest">'+b('Passer le test blanc A1','A1 deneme sınavına gir')+'</button></div>')+
+  (bkDue()?'<div class="panel px"><div class="qh">'+b('💾 Protège ton avancement','💾 İlerlemeni koru')+'</div><p>'+b("Envoie-toi ta sauvegarde (message, note). Si le téléphone efface tout, tu pourras la recoller dans Réglages.","Yedeğini kendine gönder (mesaj, not). Telefon her şeyi silerse Ayarlar'a yapıştırabilirsin.")+'</p><button class="btn green" data-act="share">'+b('Envoyer ma sauvegarde','Yedeğimi gönder')+'</button></div>':'')+
+  (S.xp===0&&!Object.keys(S.days).length?'<div class="panel px"><p>'+b('Tu as déjà une sauvegarde ?','Zaten bir yedeğin var mı?')+'</p><button class="btn ghost" data-go="settings">'+b('Retrouver ma progression','İlerlememi bul')+'</button></div>':'')+
+  (S.mic==='unset'&&!S.micAsked?'<div class="panel px"><div class="qh">'+b('🎤 Micro (facultatif)','Mikrofon (isteğe bağlı)')+'</div><p>'+b("Pour vérifier ta prononciation. Utilisé seulement dans les exercices de répétition.","Telaffuzunu kontrol etmek için. Yalnızca tekrar alıştırmalarında kullanılır.")+'</p><button class="btn blue" data-act="homemic">'+b('Activer le micro','Mikrofonu aç')+'</button><button class="btn ghost" data-act="micno">'+b('Plus tard','Sonra')+'</button></div>':'')+
+  '<div class="ver" id="cloudst">'+cloudHtml()+'</div>'+
+  '<div class="ver">Le Jardin d\'Aslı · '+VERSION+'</div>'+
+  (storageOk?'':'<div class="warn">'+b("Ce navigateur n'enregistre pas la progression. Utilise le code de sauvegarde dans Réglages.","Bu tarayıcı ilerlemeyi kaydetmiyor. Ayarlar'daki yedek kodunu kullan.")+'</div>');
+}
+function vSetup(){
+  const L=S.last;
+  return '<div class="runbar"><button class="mini" data-go="home" aria-label="Retour">'+icon('x','currentColor',24)+'</button></div>'+
+  '<div class="h1">'+b('Ta séance','Senin dersin')+'</div>'+
+  '<div class="h2">'+b('Combien de temps ?','Ne kadar süre?')+'</div>'+
+  '<div class="chips">'+[5,10,15,20,30,45,60,120].map(m=>'<button class="chip '+(L.min===m?'on':'')+'" data-act="setMin" data-v="'+m+'">'+(m===60?'1 h':m===120?'2 h':m+' min')+'</button>').join('')+'</div>'+
+  '<div class="h2">'+b('Quel style ?','Hangi tarz?')+'</div>'+
+  '<div class="chips">'+Object.keys(MODE_L).map(k=>'<button class="chip '+(L.mode===k?'on':'')+'" data-act="setMode" data-v="'+k+'">'+MODE_L[k]+'</button>').join('')+'</div>'+
+  '<div class="sub" style="margin:2px 8px">'+({mix:b('Un peu de tout.','Biraz her şeyden.'),oral:b('Écouter et répéter.','Dinle ve tekrar et.'),ecrit:b('Écrire et remettre en ordre.','Yaz ve sıraya diz.'),quiz:b('Choix multiples.','Çoktan seçmeli.'),jeux:b('Mots croisés audio et jeux.','Sesli bulmaca ve oyunlar.')})[L.mode]+'</div>'+
+  '<div class="h2">'+b('Quoi réviser ?','Ne çalışacaksın?')+'</div>'+
+  '<div class="chips">'+Object.keys(SCOPE_L).map(k=>'<button class="chip '+(L.scope===k?'on':'')+'" data-act="setScope" data-v="'+k+'">'+SCOPE_L[k]+'</button>').join('')+'</div>'+
+  '<button class="btn red" data-act="start">'+b('C\'est parti !','Başlayalım!')+'</button>';
+}
+function unitCard(u){
+  const st=S.units[u.id]||{};
+  return '<button class="unit px '+(st.done?'done':'')+'" data-act="openUnit" data-id="'+u.id+'"><span class="num">'+u.id+'</span><span class="ut"><b>'+esc(u.fr)+'</b><small>'+esc(u.tr)+'</small></span>'+
+   (st.done?icon('check','var(--green)',30):st.learned?icon('star','var(--gold)',30):'')+'</button>';
+}
+function vPath(){
+  const lvl=view.lvl||'A1';
+  const tabs='<div class="tabs">'+['A1','A2','B1','B2'].map(l=>'<button class="tab '+(lvl===l?'on':'')+'" data-act="lvl" data-v="'+l+'">'+l+'</button>').join('')+'</div>';
+  if(lvl!=='A1'){
+    return '<div class="h1">'+b('Parcours','Yol')+'</div>'+tabs+
+      '<div class="panel px" style="text-align:center">'+icon('lock','var(--dim)',48)+'<div class="h1" style="font-size:12px;margin-top:12px">'+lvl+'</div><p>'+b('Ce niveau est en préparation. Il sera ajouté dans une prochaine mise à jour. Ta progression restera intacte.','Bu seviye hazırlanıyor. Sonraki güncellemede eklenecek. İlerlemen aynen kalacak.')+'</p></div>';
+  }
+  const done=UNITS.filter(u=>S.units[u.id]&&S.units[u.id].done).length;
+  const best=S.tests.filter(t=>t.lvl==='A1').reduce((a,t)=>Math.max(a,Math.round(t.ok/t.n*100)),0);
+  let h='<div class="h1">'+b('Parcours A0 vers A1','A0\'dan A1\'e yol')+'</div>'+tabs+
+    '<div class="panel px"><div class="qh">'+b(done+' leçons réussies sur '+UNITS.length,UNITS.length+' dersten '+done+' tanesi başarıldı')+'</div><div class="bar"><i style="width:'+(done/UNITS.length*100)+'%"></i></div></div>';
+  [1,2,3,4].forEach(w=>{
+    h+='<div class="h2">'+b('Semaine '+w+' · '+WEEKS[w].fr,w+'. hafta · '+WEEKS[w].tr)+'</div>'+UNITS.filter(u=>u.wk===w).map(unitCard).join('');
+  });
+  h+='<div class="h2">'+b('Test blanc A1','A1 deneme sınavı')+'</div>'+
+   '<div class="panel px"><p>'+b("12 questions : oral, écrit, expression. Inspiré des épreuves A1.","12 soru: sözlü, yazılı, ifade. A1 sınavlarından esinlenmiştir.")+'</p>'+
+   (best?'<p>'+b('Meilleur score : '+best+' %','En iyi skor: %'+best)+'</p>':'')+
+   '<button class="btn blue" data-act="startTest">'+b('Commencer le test','Sınava başla')+'</button></div>';
+  h+='<div class="h2">'+b('Dictée sur cahier','Defterde dikte')+'</div>'+
+   '<div class="panel px"><p>'+b("Écoute, écris sur ton cahier, prends ta page en photo : Bella la corrige.","Dinle, defterine yaz, sayfanın fotoğrafını çek: Bella düzeltir.")+'</p>'+
+   '<button class="btn blue" data-act="photo">'+b('📷 Commencer une dictée','Dikteye başla')+'</button></div>';
+  return h;
+}
+
+/* ───────── Dictée sur cahier (correction par photo) ───────── */
+let photoBlob=null;
+function mkSents(uid){
+  const ws=UNIT(uid).words.filter(w=>!/[…\/()]/.test(w.xf)&&w.xf.length<=60);
+  return shuffle(ws).slice(0,4).map(w=>w.xf);
+}
+function vPhoto(){
+  const id=view.id,sents=view.sents;
+  const chips=UNITS.map(u=>'<button class="chip '+(u.id===id?'on':'')+'" data-act="pu" data-id="'+u.id+'">'+u.id+'</button>').join('');
+  return '<div class="runbar"><button class="mini" data-go="path" aria-label="Retour">'+icon('x','currentColor',24)+'</button></div>'+
+  '<div class="h1">'+b('Dictée sur cahier','Defterde dikte')+'</div>'+
+  '<div class="panel px"><p>'+b("1. Écoute chaque phrase. 2. Écris-la sur ton cahier (numérote). 3. Prends la page en photo.","1. Her cümleyi dinle. 2. Defterine yaz (numara ver). 3. Sayfanın fotoğrafını çek.")+'</p></div>'+
+  '<div class="h2">'+b('Leçon','Ders')+'</div><div class="chips">'+chips+'</div>'+
+  '<div class="panel px">'+sents.map((t,i)=>'<div class="xclue"><b>'+(i+1)+'</b>'+spk(t)+'</div>').join('')+'</div>'+
+  '<label class="btn blue" for="pf" style="cursor:pointer">'+b('📷 Photo de ma page','Sayfamın fotoğrafı')+'</label>'+
+  '<input id="pf" type="file" accept="image/*" hidden><img id="pprev" class="pimg" alt="" hidden>'+
+  '<button class="btn green" data-act="pcorrect" id="pbtn" disabled>'+b('Corriger','Düzelt')+'</button>'+
+  '<div id="pres">'+(view.resHtml||'')+'</div>';
+}
+A.photo=()=>{const u=recUnit()||UNITS[0];photoBlob=null;learning=true;go('photo',{id:u.id,sents:mkSents(u.id)});};
+A.pu=t=>{const id=+t.dataset.id;photoBlob=null;view=Object.assign(view,{id,sents:mkSents(id),resHtml:''});render();};
+app.addEventListener('change',e=>{
+  if(e.target.id!=='pf')return;
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  photoBlob=f;const im=$('#pprev');im.src=URL.createObjectURL(f);im.hidden=false;$('#pbtn').disabled=false;
+});
+async function shrink(file){
+  const bm=await createImageBitmap(file);const sc=Math.min(1,1600/Math.max(bm.width,bm.height));
+  const cv=document.createElement('canvas');cv.width=Math.round(bm.width*sc);cv.height=Math.round(bm.height*sc);
+  cv.getContext('2d').drawImage(bm,0,0,cv.width,cv.height);
+  return new Promise(r=>cv.toBlob(r,'image/jpeg',.85));
+}
+A.pcorrect=async()=>{
+  if(!photoBlob)return;const out=$('#pres'),btn=$('#pbtn');
+  let sample=null;try{sample=await window.claude.use('sample');}catch(e){}
+  if(!sample){out.innerHTML='<div class="warn">'+b("La correction par photo n'est pas disponible ici.","Fotoğrafla düzeltme burada kullanılamıyor.")+'</div>';return;}
+  const sents=view.sents.slice();
+  btn.disabled=true;out.innerHTML='<div class="panel px">'+b('Bella lit ta page…','Bella sayfanı okuyor…')+'</div>';
+  try{
+    const img=await shrink(photoBlob);
+    const prompt="Tu es un professeur de français bienveillant pour une adulte turcophone de niveau A1. Voici une photo de sa page manuscrite : elle a écrit une dictée de "+sents.length+" phrases numérotées. Phrases attendues :\n"+sents.map((t,i)=>(i+1)+'. '+t).join('\n')+"\nPour chaque numéro, lis ce qu'elle a écrit, compare avec la phrase attendue (les accents et la ponctuation comptent, mais ignore la qualité de l'écriture) et réponds UNIQUEMENT par un JSON : {\"lines\":[{\"n\":1,\"read\":\"texte lu\",\"ok\":true,\"fr\":\"remarque très courte en français simple\",\"tr\":\"aynı remarque en turc\"}],\"fr\":\"encouragement court\",\"tr\":\"kısa teşvik\"}. Si une ligne est illisible ou absente, mets ok:false et read:\"\".";
+    const r=await sample.json(prompt,{images:[img],cache:false});
+    const lines=(r&&r.lines)||[];let okn=0;
+    const html=lines.map(l=>{const ok=!!l.ok;if(ok)okn++;const exp=sents[(l.n||1)-1]||'';
+      return '<div class="pl '+(ok?'good':'bad')+'"><b>'+esc(String(l.n))+'.</b> '+(ok?'✔':'✖')+' <i>'+esc(l.read||'—')+'</i>'+(ok?'':'<br>→ <b>'+esc(exp)+'</b>')+'<div class="sub">'+esc(l.fr||'')+'<br>'+esc(l.tr||'')+'</div></div>';}).join('');
+    const d=day();d.ex=(d.ex||0)+lines.length;d.ok=(d.ok||0)+okn;d.xp=(d.xp||0)+okn*5;S.xp+=okn*5;save(true);
+    view.resHtml=html+'<div class="panel px">'+esc((r&&r.fr)||'')+'<br><span class="sub">'+esc((r&&r.tr)||'')+'</span><br><b>'+okn+'/'+sents.length+'</b> · +'+okn*5+' XP</div>';
+    out.innerHTML=view.resHtml;sfx.win();
+  }catch(e){
+    out.innerHTML='<div class="warn">'+b("La correction n'a pas marché. Réessaie.","Düzeltme olmadı. Tekrar dene.")+'</div>';
+  }
+  btn.disabled=false;
+};
+
+/* ───────── Export PDF (pages dessinées puis assemblées) ───────── */
+function bytesFromDataURL(u){const bin=atob(u.split(',')[1]);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a;}
+function pdfFromCanvases(cvs){
+  const enc=new TextEncoder(),parts=[],offs=[];let len=0;
+  const push=x=>{const u=typeof x==='string'?enc.encode(x):x;parts.push(u);len+=u.length;};
+  const obj=(n,body)=>{offs[n]=len;push(n+' 0 obj\n'+body+'\nendobj\n');};
+  const N=cvs.length;push('%PDF-1.4\n');
+  obj(1,'<</Type/Catalog/Pages 2 0 R>>');
+  obj(2,'<</Type/Pages/Kids ['+cvs.map((_,i)=>(3+3*i)+' 0 R').join(' ')+']/Count '+N+'>>');
+  cvs.forEach((cv,i)=>{
+    const jpg=bytesFromDataURL(cv.toDataURL('image/jpeg',.85)),c='q 595 0 0 842 0 0 cm /Im0 Do Q';
+    obj(3+3*i,'<</Type/Page/Parent 2 0 R/MediaBox [0 0 595 842]/Resources<</XObject<</Im0 '+(5+3*i)+' 0 R>>>>/Contents '+(4+3*i)+' 0 R>>');
+    obj(4+3*i,'<</Length '+c.length+'>>\nstream\n'+c+'\nendstream');
+    offs[5+3*i]=len;push((5+3*i)+' 0 obj\n<</Type/XObject/Subtype/Image/Width '+cv.width+'/Height '+cv.height+'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length '+jpg.length+'>>\nstream\n');
+    push(jpg);push('\nendstream\nendobj\n');
+  });
+  const xr=len,total=3*N+3;
+  push('xref\n0 '+total+'\n0000000000 65535 f \n');
+  for(let n=1;n<total;n++)push(String(offs[n]).padStart(10,'0')+' 00000 n \n');
+  push('trailer\n<</Size '+total+'/Root 1 0 R>>\nstartxref\n'+xr+'\n%%EOF');
+  const out=new Uint8Array(len);let p=0;parts.forEach(u=>{out.set(u,p);p+=u.length;});return out;
+}
+function drawPages(title,sub,rows){
+  const W=1190,H=1684,M=90,pages=[];let x,y;
+  const np=()=>{const cv=document.createElement('canvas');cv.width=W;cv.height=H;x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);pages.push(cv);
+    x.font='24px Arial,sans-serif';x.fillStyle='#888';x.fillText("Le Jardin d'Aslı · "+VERSION+' · '+pages.length,M,H-50);y=M;};
+  np();x.fillStyle='#111';x.font='bold 56px Arial,sans-serif';x.fillText(title,M,y+50);y+=90;
+  x.font='28px Arial,sans-serif';x.fillStyle='#555';x.fillText(sub,M,y);y+=60;
+  rows.forEach(r=>{
+    const h=r.h?90:r.line?120:150;
+    if(y+h>H-110)np();
+    if(r.h){x.fillStyle='#1d2146';x.font='bold 36px Arial,sans-serif';x.fillText(r.h,M,y+40);y+=h;return;}
+    if(r.line){x.fillStyle='#444';x.font='30px Arial,sans-serif';x.fillText(r.line,M,y+30);x.strokeStyle='#999';x.lineWidth=2;x.beginPath();x.moveTo(M,y+85);x.lineTo(W-M,y+85);x.stroke();y+=h;return;}
+    x.fillStyle='#111';x.font='bold 36px Arial,sans-serif';x.fillText(r.fr,M,y+34);
+    x.fillStyle='#b3232f';x.font='32px Arial,sans-serif';x.fillText(r.tr||'',M+560,y+34);
+    x.fillStyle='#333';x.font='italic 28px Arial,sans-serif';x.fillText(r.xf||'',M,y+82);
+    x.fillStyle='#777';x.font='26px Arial,sans-serif';x.fillText(r.xt||'',M,y+118);y+=h;
+  });
+  return pages;
+}
+async function savePdf(name,pages){
+  let dl=null;try{dl=await window.claude.use('downloads');}catch(e){}
+  if(!dl){toast(b("L'export n'est pas disponible ici.","Dışa aktarma burada kullanılamıyor."));return;}
+  try{await dl.save({filename:name,data:new Blob([pdfFromCanvases(pages)],{type:'application/pdf'})});}
+  catch(e){if(!e||e.code!=='declined')toast(b("Export impossible.","Dışa aktarılamadı."));}
+}
+A.pdfunit=t=>{const u=UNIT(+t.dataset.id);
+  savePdf('fiche-unite-'+u.id+'.pdf',drawPages(u.id+'. '+u.fr,u.tr+' · '+new Date().toLocaleDateString('fr-FR'),u.words.map(w=>({fr:w.fr,tr:w.tr,xf:w.xf,xt:w.xt}))));};
+A.pdfex=t=>{const u=UNIT(+t.dataset.id);
+  const rows=[{h:'Écris en français / Fransızca yaz'}].concat(shuffle(u.words).slice(0,12).map((w,i)=>({line:(i+1)+'.  '+w.tr})));
+  savePdf('exercices-unite-'+u.id+'.pdf',drawPages('Exercices · '+u.fr,u.tr,rows));};
+A.pdfbilan=()=>{
+  const ks=Object.keys(S.days).sort().slice(-20),ex=totalEx(),st=streaks();
+  const rows=[{h:'Résumé / Özet'},{line:'Temps total : '+fmtDur(totalSec())+' · Exercices : '+ex[0]+' · Réussis : '+ex[1]+' · XP : '+S.xp},{line:'Série en cours : '+st.cur+' jours'},{h:'Leçons / Dersler'}]
+   .concat(UNITS.map(u=>({line:u.id+'. '+u.fr+'  —  '+((S.units[u.id]||{}).done?'réussi':(S.units[u.id]||{}).learned?'vue':'à faire')})))
+   .concat([{h:'Derniers jours / Son günler'}]).concat(ks.map(k=>({line:k+'  :  '+fmtDur(S.days[k].sec||0)+'  ·  '+(S.days[k].ex||0)+' ex.'})));
+  savePdf('bilan-progression.pdf',drawPages('Bilan de '+S.name,new Date().toLocaleDateString('fr-FR'),rows));
+};
+
+function vUnit(){
+  const u=UNIT(view.id),st=S.units[u.id]||{};
+  return '<div class="runbar"><button class="mini" data-go="path" aria-label="Retour">'+icon('x','currentColor',24)+'</button></div>'+
+  '<div class="emo">'+(UEMO[u.id]||'')+'</div><div class="h1">'+b(u.id+'. '+esc(u.fr),esc(u.tr))+'</div>'+
+  '<div class="chips">'+(st.learned?'<span class="chip on">'+b('Leçon vue','Ders görüldü')+'</span>':'')+(st.done?'<span class="chip on">'+b('Mini-test réussi','Mini test başarılı')+'</span>':'')+(st.testBest?'<span class="chip">'+st.testBest+'/8</span>':'')+'</div>'+
+  '<button class="btn blue" data-act="lesson" data-id="'+u.id+'">'+b('📖 1. La leçon','1. Ders')+'</button>'+
+  '<button class="btn green" data-act="practice" data-id="'+u.id+'">'+b("✏️ 2. S'entraîner (10 questions)","2. Alıştırma (10 soru)")+'</button>'+
+  '<button class="btn red" data-act="utest" data-id="'+u.id+'">'+b('🏆 3. Mini-test (8 questions)','3. Mini test (8 soru)')+'</button>'+
+  '<div class="row"><button class="btn ghost" data-act="pdfunit" data-id="'+u.id+'">'+b('📄 Fiche PDF','PDF kart')+'</button><button class="btn ghost" data-act="pdfex" data-id="'+u.id+'">'+b('📝 Exercices PDF','PDF alıştırma')+'</button></div>'+
+  '<div class="panel px"><div class="qh">'+b('Les mots de la leçon','Dersin kelimeleri')+'</div><div class="wl">'+u.words.map(w=>'<div>'+esc(w.fr)+'</div><div class="t">'+esc(w.tr)+'</div>').join('')+'</div></div>';
+}
+function vLesson(){
+  const u=UNIT(view.id),w=u.words[view.i],n=u.words.length;
+  return '<div class="runbar"><button class="mini" data-act="lexit" aria-label="Retour">'+icon('x','currentColor',24)+'</button><div class="timer">'+(view.i+1)+'/'+n+'</div><span style="width:52px"></span></div>'+
+  '<div class="dots">'+u.words.map((_,i)=>'<i class="'+(i<=view.i?'on':'')+'"></i>').join('')+'</div>'+
+  '<div class="card flash px pop"><div class="emo">'+emo(w)+'</div><div class="fw">'+esc(w.fr)+'</div><div class="listen">'+spk(w.fr)+'</div><div class="tw">'+esc(w.tr)+'</div>'+
+  '<div class="ex">'+esc(w.xf)+'<div class="listen">'+spk(w.xf)+'</div><small>'+esc(w.xt)+'</small></div></div>'+
+  '<button class="btn blue" data-act="lmic">'+icon('mic','currentColor',22)+' '+b('Dis-le à voix haute','Yüksek sesle söyle')+'</button><div id="pron"></div>'+
+  '<div class="row">'+(view.i>0?'<button class="btn ghost" data-act="lprev">'+b('Précédent','Önceki')+'</button>':'')+
+  (view.i<n-1?'<button class="btn blue" data-act="lnext">'+b('Suivant','Sonraki')+'</button>':'<button class="btn green" data-act="lend">'+b("J'ai appris !","Öğrendim!")+'</button>')+'</div>';
+}
+A.lexit=()=>go('unit',{id:view.id});
+function vSuivi(){
+  const now=new Date();if(view.y==null){view.y=now.getFullYear();view.m=now.getMonth();}
+  const y=view.y,m=view.m,off=(new Date(y,m,1).getDay()+6)%7,dim=new Date(y,m+1,0).getDate(),tk=todayK();
+  let cells=DAYS_FR.map(d=>'<div class="hd">'+d+'</div>').join('');
+  for(let i=0;i<off;i++)cells+='<div class="day void"></div>';
+  for(let d=1;d<=dim;d++){
+    const k=y+'-'+pad(m+1)+'-'+pad(d),r=S.days[k],min=r?Math.floor(r.sec/60):0;
+    const l=!r||r.sec<30?0:min<5?1:min<15?2:min<30?3:4;
+    cells+='<button class="day l'+l+(k===tk?' today':'')+(view.sel===k?' sel':'')+'" data-act="selday" data-k="'+k+'"><span>'+d+'</span><small>'+(r&&r.sec>=30?(min||'<1')+'′':'')+'</small></button>';
+  }
+  const sk=view.sel&&S.days[view.sel];
+  let det='';
+  if(view.sel){
+    const dd=new Date(view.sel+'T12:00:00');
+    det='<div class="panel px"><div class="qh">'+dd.getDate()+' '+MONTHS[dd.getMonth()][0]+' · '+MONTHS[dd.getMonth()][1]+'</div>'+
+      (sk&&sk.sec?'<div>'+icon('clock','var(--blue)',22)+' '+fmtDur(sk.sec)+'</div><div>'+icon('check','var(--green)',22)+' '+(sk.ex||0)+' '+b('exercices','alıştırma')+' · '+(sk.ex?Math.round((sk.ok||0)/sk.ex*100):0)+' %</div><div>'+icon('star','var(--gold)',22)+' '+(sk.xp||0)+' XP</div>':'<div>'+b("Pas d'activité ce jour-là.","O gün etkinlik yok.")+'</div>')+'</div>';
+  }
+  const st=streaks(),te=totalEx(),days=Object.values(S.days).filter(d=>d.sec>=120).length;
+  const tests=S.tests.slice(-5).reverse().map(t=>'<div>'+t.d+' · '+t.lvl+' · '+t.ok+'/'+t.n+'</div>').join('');
+  return '<div class="h1">'+b('Mon suivi','Takibim')+'</div>'+
+  '<div class="mnav"><button class="mini" data-act="mprev" aria-label="Mois précédent">&lt;</button><div class="h1" style="font-size:12px">'+MONTHS[m][0]+' '+y+'<br><small style="font-family:var(--f-body);font-size:20px;color:var(--dim)">'+MONTHS[m][1]+'</small></div><button class="mini" data-act="mnext" aria-label="Mois suivant">&gt;</button></div>'+
+  '<div class="cal">'+cells+'</div>'+
+  '<div class="legend"><i style="background:var(--panel)"></i>0<i style="background:#27507a"></i>&lt;5′<i style="background:#1f7a6a"></i>&lt;15′<i style="background:#2fa35f"></i>&lt;30′<i style="background:var(--green)"></i>30′+</div>'+det+
+  '<div class="tiles">'+
+   '<div class="tile px">'+icon('clock','var(--blue)',26)+'<b>'+fmtDur(totalSec())+'</b><span>'+b('au total','toplam')+'</span></div>'+
+   '<div class="tile px">'+icon('flame','var(--red)',26)+'<b>'+st.cur+' / '+st.best+'</b><span>'+b('série / record','seri / rekor')+'</span></div>'+
+   '<div class="tile px">'+icon('check','var(--green)',26)+'<b>'+(te[0]?Math.round(te[1]/te[0]*100):0)+'%</b><span>'+b('réussite','başarı')+'</span></div>'+
+  '</div>'+
+  '<div class="panel px"><div class="qh">'+b(days+' jours étudiés · '+te[0]+' exercices','çalışılan '+days+' gün · '+te[0]+' alıştırma')+'</div>'+
+  '<div class="sub">'+b('Un jour compte à partir de 2 minutes.','Bir gün 2 dakikadan itibaren sayılır.')+'</div></div>'+
+  (tests?'<div class="panel px"><div class="qh">'+b('Derniers tests blancs','Son deneme sınavları')+'</div>'+tests+'</div>':'');
+}
+function vGifts(){
+  const st=streaks(),tot=totalSec();
+  const card=g=>{
+    const open=!!S.gifts[g.id],rd=giftReady(g);
+    const need=g.k==='s'?g.need+' '+(g.need>1?'jours':'jour'):g.need+' h';
+    const needTr=g.k==='s'?g.need+' gün':g.need+' saat';
+    return '<div class="gift px '+(open?'open':!rd?'lock':'')+'"><canvas data-c="'+g.color+'"></canvas><b>'+esc(g.n)+'</b><small>'+(g.k==='s'?b(need+' de suite',needTr+' üst üste'):b(need+' de travail',needTr+' çalışma'))+'</small>'+
+      (open?'<small>'+icon('check','var(--green)',18)+'</small>':rd?'<button class="btn red" data-act="open" data-id="'+g.id+'">'+b('Ouvrir','Aç')+'</button>':'<small>'+icon('lock','var(--dim)',18)+'</small>')+'</div>';
+  };
+  return '<div class="h1">'+b('Mes cadeaux','Hediyelerim')+'</div><div class="sub">'+b('Série en cours : '+st.cur+' jour(s). Record : '+st.best+'. Étudie au moins 2 minutes par jour.','Güncel seri: '+st.cur+' gün. Rekor: '+st.best+'. Günde en az 2 dakika çalış.')+'</div>'+
+  '<div class="h2">'+b('Jours de suite','Üst üste günler')+'</div><div class="gifts">'+GIFTS.filter(g=>g.k==='s').map(card).join('')+'</div>'+
+  '<div class="h2">'+b('Temps total','Toplam süre')+'</div><div class="gifts">'+GIFTS.filter(g=>g.k==='t').map(card).join('')+'</div>';
+}
+function vSettings(){
+  const goals=[5,10,15,20,30,45,60,120];
+  return '<div class="h1">'+b('Réglages','Ayarlar')+'</div><div class="sub">Le Jardin d\'Aslı · '+VERSION+'</div>'+
+  '<label for="nm">'+b('Prénom','Adın')+'</label><input id="nm" class="inp" type="text" value="'+esc(S.name)+'" maxlength="24">'+
+  '<label for="goal">'+b('Objectif par jour','Günlük hedef')+'</label><select id="goal" class="inp">'+goals.map(g=>'<option value="'+g+'"'+(S.goalMin===g?' selected':'')+'>'+(g===60?'1 h':g===120?'2 h':g+' min')+'</option>').join('')+'</select>'+
+  '<div class="h2">'+b('Son et voix','Ses')+'</div>'+
+  '<div class="chips"><button class="chip '+(S.sound?'on':'')+'" data-act="tsound">'+b('Sons du jeu','Oyun sesleri')+'</button><button class="chip '+(S.slow?'on':'')+'" data-act="tslow">'+b('Voix plus lente','Daha yavaş ses')+'</button></div>'+
+  '<div class="chips"><button class="chip '+(S.amb?'on':'')+'" data-act="tamb">'+b('Musique douce','Hafif müzik')+'</button><button class="chip '+(S.mic==='on'?'on':'')+'" data-act="tmic">'+b('🎤 Micro','🎤 Mikrofon')+'</button></div>'+
+  '<div class="h2">'+b('Exporter en PDF','PDF olarak aktar')+'</div><button class="btn ghost" data-act="pdfbilan">'+b('📄 Mon bilan de progression','İlerleme raporum')+'</button>'+
+  '<div class="h2">'+b('Sauvegarde','Yedek')+'</div><div class="sub" id="cloudst">'+cloudHtml()+'</div>'+
+  '<div class="panel px"><p>'+b("La progression est enregistrée sur cet appareil. Pour changer de téléphone, copie ce code et colle-le sur le nouvel appareil.","İlerleme bu cihazda kaydedilir. Telefon değiştirirsen bu kodu kopyalayıp yeni cihaza yapıştır.")+'</p>'+
+   '<button class="btn green" data-act="share">'+b('📤 Envoyer ma sauvegarde','Yedeğimi gönder')+'</button>'+
+   '<button class="btn ghost" data-act="dlbk">'+b('💾 Enregistrer en fichier','Dosya olarak kaydet')+'</button>'+
+   '<button class="btn blue" data-act="exp">'+b('Créer mon code','Kodumu oluştur')+'</button>'+
+   (view.code?'<textarea id="bk" class="inp" readonly>'+esc(view.code)+'</textarea><button class="btn green" data-act="copy">'+b('Copier le code','Kodu kopyala')+'</button>':'')+
+   '<label for="imp">'+b('Coller un code ici','Kodu buraya yapıştır')+'</label><textarea id="imp" class="inp" placeholder="…"></textarea><button class="btn ghost" data-act="imp">'+b('Importer','İçe aktar')+'</button></div>'+
+  '<div class="h2">'+b('Zone sensible','Dikkat')+'</div><button class="btn ghost" data-act="reset">'+b('Tout effacer','Hepsini sil')+'</button>'+
+  '<div class="sub" style="text-align:center">Le Jardin d\'Aslı · '+VERSION+' · A0 → A1</div>';
+}
+function vSummary(){
+  const r=view.res;
+  const backBtn=(cls,lbl)=>view.back==='unit'?'<button class="btn '+cls+'" data-act="openUnit" data-id="'+view.uid+'">'+lbl+'</button>':'<button class="btn '+cls+'" data-go="'+view.back+'">'+lbl+'</button>';
+  if(!r.n)return '<div class="panel px"><p>'+b('Aucune question répondue.','Hiç soru cevaplanmadı.')+'</p>'+backBtn('blue',b('Retour','Geri'))+'</div>';
+  const pc=Math.round(r.ok/r.n*100);
+  return '<div class="h1" style="text-align:center">'+b('Bravo, '+esc(S.name)+' !','Aferin, '+esc(S.name)+'!')+'</div>'+
+  '<div class="sum">'+
+   '<div class="tile px">'+icon('check','var(--green)',28)+'<b>'+r.ok+'/'+r.n+'</b><span>'+b('bonnes réponses','doğru cevap')+'</span></div>'+
+   '<div class="tile px">'+icon('star','var(--gold)',28)+'<b>'+pc+'%</b><span>'+b('réussite','başarı')+'</span></div>'+
+   '<div class="tile px">'+icon('clock','var(--blue)',28)+'<b>'+Math.max(1,Math.round(r.sec/60))+"'</b><span>"+b('de travail','çalışma')+'</span></div>'+
+   '<div class="tile px">'+icon('flame','var(--red)',28)+'<b>+'+r.xp+'</b><span>XP</span></div>'+
+  '</div>'+view.extra+
+  (giftsAvail()?'<div class="panel px">'+b('Un cadeau t\'attend !','Seni bir hediye bekliyor!')+'<button class="btn red" data-go="gifts">'+b('Voir mes cadeaux','Hediyelerime bak')+'</button></div>':'')+
+  backBtn('green',b('Continuer','Devam'))+
+  (S.last.mode&&view.res.kind==='session'?'<button class="btn ghost" data-act="start">'+b('Encore une séance','Bir ders daha')+'</button>':'');
+}
+function renderNav(){
+  const items=[['home','home',b('Accueil','Ana sayfa')],['path','path',b('Parcours','Yol')],['suivi','cal',b('Suivi','Takvim')],['gifts','gift',b('Cadeaux','Hediye')],['settings','gear',b('Réglages','Ayarlar')]];
+  const cur=['setup','unit','summary'].includes(view.name)?(view.name==='unit'?'path':'home'):view.name;
+  $('#navin').innerHTML=items.map(([id,ic,l])=>'<button class="nb '+(cur===id?'on':'')+'" data-go="'+id+'" aria-label="'+id+'">'+icon(ic,'currentColor',28)+'<span>'+l+'</span>'+(id==='gifts'&&giftsAvail()?'<i class="dot"></i>':'')+'</button>').join('');
+}
+function render(){
+  const n=view.name;
+  $('#nav').hidden=(n==='run'||n==='lesson'||n==='photo');
+  if(n==='run'){renderRunView();return;}
+  app.innerHTML=({photo:vPhoto,home:vHome,setup:vSetup,path:vPath,unit:vUnit,lesson:vLesson,suivi:vSuivi,gifts:vGifts,settings:vSettings,summary:vSummary})[n]();
+  renderNav();
+  if(n==='home'){mountGarden();const bc=$('#bella');if(bc)drawBella(bc);}
+  if(n==='gifts')$$('.gift canvas').forEach(cv=>drawFlower(cv,cv.dataset.c,4));
+}
+
+/* étoiles de fond */
+(function(){
+  let s=[],seed=7;const r=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  for(let i=0;i<34;i++)s.push(Math.floor(r()*1400)+'px '+Math.floor(r()*1000)+'px 0 0 rgba(255,255,255,'+(0.25+r()*0.5).toFixed(2)+')');
+  $('#stars').style.boxShadow=s.join(',');
+})();
+
+
+render();
+cloudInit();
+})();
+</script>
+
+<script>if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body></html>
